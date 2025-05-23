@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Page - Kazzy Enterprises</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module">
+    // Firebase v9+ modular import
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const orderSections = document.getElementById("order-sections");
+    const addCategoryBtn = document.getElementById("add-category");
+    const placeOrderBtn = document.getElementById("place-order");
+
+    addCategoryBtn.addEventListener("click", async () => {
+      const categoriesSnap = await getDocs(collection(db, "products"));
+      const categories = [...new Set(categoriesSnap.docs.map(doc => doc.data().category))];
+
+      const section = document.createElement("div");
+      section.className = "order-category";
+
+      const categorySelect = document.createElement("select");
+      categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat;
+        option.textContent = cat;
+        categorySelect.appendChild(option);
+      });
+
+      const itemSelect = document.createElement("select");
+      const countInput = document.createElement("input");
+      countInput.type = "number";
+      countInput.value = 1;
+      countInput.min = 1;
+
+      const updateItems = async () => {
+        itemSelect.innerHTML = "";
+        const cat = categorySelect.value;
+        const q = query(collection(db, "products"), where("category", "==", cat));
+        const itemsSnap = await getDocs(q);
+        itemsSnap.forEach(doc => {
+          const option = document.createElement("option");
+          option.value = doc.data().name;
+          option.textContent = doc.data().name;
+          itemSelect.appendChild(option);
+        });
+      };
+
+      categorySelect.addEventListener("change", updateItems);
+      await updateItems();
+
+      section.appendChild(categorySelect);
+      section.appendChild(itemSelect);
+      section.appendChild(countInput);
+      orderSections.appendChild(section);
+
+      placeOrderBtn.style.display = "block";
+    });
+
+    document.getElementById("add-product").addEventListener("click", async () => {
+      const newCategory = document.getElementById("new-category").value;
+      const newProduct = document.getElementById("new-product").value;
+      if (newCategory && newProduct) {
+        await addDoc(collection(db, "products"), { category: newCategory, name: newProduct });
+        alert("Product added to database.");
+        document.getElementById("new-category").value = "";
+        document.getElementById("new-product").value = "";
+      }
+    });
+
+    placeOrderBtn.addEventListener("click", async () => {
+      const shop = document.getElementById("shop-name").value;
+      const place = document.getElementById("place").value;
+      const orders = [];
+      document.querySelectorAll(".order-category").forEach(section => {
+        const category = section.querySelector("select").value;
+        const item = section.querySelectorAll("select")[1].value;
+        const count = parseInt(section.querySelector("input").value);
+        orders.push({ category, item, count });
+      });
+
+      if (!shop || !place || orders.length === 0) {
+        alert("Please fill all fields and add at least one order item.");
+        return;
+      }
+
+      await addDoc(collection(db, "orders"), {
+        shop,
+        place,
+        orders,
+        timestamp: serverTimestamp()
+      });
+
+      alert("Order placed successfully!");
+      location.reload();
+    });
+  </script>
+</head>
+<body>
+  <section class="order-form">
+    <h1>Place Order</h1>
+    <label>Shop Name: <input type="text" id="shop-name"></label>
+    <label>Place: <input type="text" id="place"></label>
+
+    <div id="order-sections"></div>
+
+    <button id="add-category">Add Category & Item</button>
+    
+    <button id="place-order" style="display:none;">Place Order</button>
+
+    <h2>Add New Product to DB</h2>
+    <label>Category: <input type="text" id="new-category"></label>
+    <label>Product Name: <input type="text" id="new-product"></label>
+    <button id="add-product">Add Product</button>
+
+    
+  </section>
+</body>
+</html>
