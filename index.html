@@ -5,8 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kazzy Enterprises</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
   <nav>
     <div class="nav-container">
       <div class="logo">Kazzy Enterprises</div>
@@ -19,38 +21,9 @@
     </div>
   </nav>
 
-  <section id="login">
-    <h2>Login</h2>
-    <p>This is the login section. (Form functionality can be added later.)</p>
+  <section id="contact" class="socials">
+    <div id="contact-content"></div>
   </section>
-
-  <section id="order">
-    <h2>Order</h2>
-    <p>Place your order for sweets, chocolates, biscuits, and wafers.</p>
-  </section>
-
-   <section class="info_section layout_padding">
-    <div class="footer_contact">
-      <div class="heading_container">
-        <h2>
-          Contact Me
-        </h2>
-      </div>
-      <div class="box">
-        <a href="https://www.linkedin.com/in/augustine-aj/" class="img-box">
-          <img src="images/linkedin.png" alt="" class="img-1">
-          <img src="images/linkedin-o.png" alt="" class="img-2">
-        </a>
-        <a href="https://github.com/augustine-aj" class="img-box">
-          <img src="images/github.png" alt="" class="img-1">
-          <img src="images/github-o.png" alt="" class="img-2">
-        </a>
-        <a href="mailto:augustine04849@gmail.com" class="img-box">
-          <img src="images/envelope.png" alt="" class="img-1">
-          <img src="images/envelope-o.png" alt="" class="img-2">
-        </a>
-      </div>
-    </div>
 
   <script>
     const menuToggle = document.getElementById("menu-toggle");
@@ -59,6 +32,15 @@
     menuToggle.addEventListener("click", () => {
       navLinks.classList.toggle("active");
     });
+
+    fetch('contact.html')
+    .then(response => response.text())
+    .then(data => {
+      document.getElementById('contact-content').innerHTML = data;
+    })
+    .catch(error => console.error('Error loading contact.html:', error));
+
   </script>
+
 </body>
 </html>
