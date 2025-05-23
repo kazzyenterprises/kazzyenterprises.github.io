@@ -5,11 +5,74 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Order Page - Kazzy Enterprises</title>
   <link rel="stylesheet" href="styles.css">
-  <script type="module">
-    // Firebase v9+ modular import
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-    import { getFirestore, collection, getDocs, query, where, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js";
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+  <style>
+    @media (min-width: 768px) {
+      #order-table {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+      }
+      #order-table thead,
+      #order-table tbody,
+      #order-table tr,
+      #order-table td,
+      #order-table th {
+        border: 1px solid #ccc;
+        padding: 8px;
+      }
+    }
 
+    @media (max-width: 767px) {
+      #order-table {
+        display: block;
+      }
+      .order-category {
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        padding: 10px;
+      }
+      .order-category label {
+        display: block;
+        margin-bottom: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="order-form">
+    <h1>Place Order</h1>
+    <label>Shop Name: <input type="text" id="shop-name"></label>
+    <label>Place: <input type="text" id="place"></label>
+
+    <div id="order-sections">
+      <table id="order-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Item</th>
+            <th>Count</th>
+            <th>Margin Rate</th>
+            <th>Actual MRP</th>
+          </tr>
+        </thead>
+        <tbody id="order-tbody"></tbody>
+      </table>
+    </div>
+    
+    <button id="add-category">Add Category & Item</button>
+    <button id="place-order" style="display:none;">Place Order</button>
+    
+    <h2>Add New Product to DB</h2>
+    <label>Category: <input type="text" id="new-category"></label>
+    <label>Product Name: <input type="text" id="new-product"></label>
+    <button id="add-product">Add Product</button>
+
+    <button id="place-order" style="display:none;">Place Order</button>
+  </section>
+
+  <script>
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -19,19 +82,19 @@
       appId: "YOUR_APP_ID"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    const orderSections = document.getElementById("order-sections");
+    const orderTbody = document.getElementById("order-tbody");
     const addCategoryBtn = document.getElementById("add-category");
     const placeOrderBtn = document.getElementById("place-order");
 
     addCategoryBtn.addEventListener("click", async () => {
-      const categoriesSnap = await getDocs(collection(db, "products"));
+      const categoriesSnap = await db.collection("products").get();
       const categories = [...new Set(categoriesSnap.docs.map(doc => doc.data().category))];
 
-      const section = document.createElement("div");
-      section.className = "order-category";
+      const tr = document.createElement("tr");
+      tr.className = "order-category";
 
       const categorySelect = document.createElement("select");
       categories.forEach(cat => {
@@ -47,27 +110,52 @@
       countInput.value = 1;
       countInput.min = 1;
 
+      const marginInput = document.createElement("input");
+      marginInput.type = "number";
+      marginInput.step = "0.01";
+
+      const mrpInput = document.createElement("input");
+      mrpInput.type = "number";
+      mrpInput.step = "0.01";
+
       const updateItems = async () => {
         itemSelect.innerHTML = "";
         const cat = categorySelect.value;
-        const q = query(collection(db, "products"), where("category", "==", cat));
-        const itemsSnap = await getDocs(q);
+        const itemsSnap = await db.collection("products").where("category", "==", cat).get();
         itemsSnap.forEach(doc => {
           const option = document.createElement("option");
           option.value = doc.data().name;
           option.textContent = doc.data().name;
           itemSelect.appendChild(option);
         });
+        await updateProductDetails();
+      };
+
+      const updateProductDetails = async () => {
+        const cat = categorySelect.value;
+        const item = itemSelect.value;
+        const productSnap = await db.collection("products")
+          .where("category", "==", cat)
+          .where("name", "==", item).get();
+        if (!productSnap.empty) {
+          const data = productSnap.docs[0].data();
+          marginInput.value = data.margin || "";
+          mrpInput.value = data.mrp || "";
+        }
       };
 
       categorySelect.addEventListener("change", updateItems);
+      itemSelect.addEventListener("change", updateProductDetails);
       await updateItems();
 
-      section.appendChild(categorySelect);
-      section.appendChild(itemSelect);
-      section.appendChild(countInput);
-      orderSections.appendChild(section);
+      const createTd = (el) => { const td = document.createElement("td"); td.appendChild(el); return td; };
+      tr.appendChild(createTd(categorySelect));
+      tr.appendChild(createTd(itemSelect));
+      tr.appendChild(createTd(countInput));
+      tr.appendChild(createTd(marginInput));
+      tr.appendChild(createTd(mrpInput));
 
+      orderTbody.appendChild(tr);
       placeOrderBtn.style.display = "block";
     });
 
@@ -75,7 +163,7 @@
       const newCategory = document.getElementById("new-category").value;
       const newProduct = document.getElementById("new-product").value;
       if (newCategory && newProduct) {
-        await addDoc(collection(db, "products"), { category: newCategory, name: newProduct });
+        await db.collection("products").add({ category: newCategory, name: newProduct });
         alert("Product added to database.");
         document.getElementById("new-category").value = "";
         document.getElementById("new-product").value = "";
@@ -87,10 +175,15 @@
       const place = document.getElementById("place").value;
       const orders = [];
       document.querySelectorAll(".order-category").forEach(section => {
-        const category = section.querySelector("select").value;
-        const item = section.querySelectorAll("select")[1].value;
-        const count = parseInt(section.querySelector("input").value);
-        orders.push({ category, item, count });
+        const selects = section.querySelectorAll("select");
+        const inputs = section.querySelectorAll("input");
+        orders.push({
+          category: selects[0].value,
+          item: selects[1].value,
+          count: parseInt(inputs[0].value),
+          margin: parseFloat(inputs[1].value),
+          mrp: parseFloat(inputs[2].value)
+        });
       });
 
       if (!shop || !place || orders.length === 0) {
@@ -98,36 +191,16 @@
         return;
       }
 
-      await addDoc(collection(db, "orders"), {
+      await db.collection("orders").add({
         shop,
         place,
         orders,
-        timestamp: serverTimestamp()
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
 
       alert("Order placed successfully!");
       location.reload();
     });
   </script>
-</head>
-<body>
-  <section class="order-form">
-    <h1>Place Order</h1>
-    <label>Shop Name: <input type="text" id="shop-name"></label>
-    <label>Place: <input type="text" id="place"></label>
-
-    <div id="order-sections"></div>
-
-    <button id="add-category">Add Category & Item</button>
-    
-    <button id="place-order" style="display:none;">Place Order</button>
-
-    <h2>Add New Product to DB</h2>
-    <label>Category: <input type="text" id="new-category"></label>
-    <label>Product Name: <input type="text" id="new-product"></label>
-    <button id="add-product">Add Product</button>
-
-    
-  </section>
 </body>
 </html>
