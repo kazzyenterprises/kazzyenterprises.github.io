@@ -12,9 +12,10 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      max-width: 600px;
+      max-width: 700px;
       margin: 0 auto;
     }
+
     section.order-form label, 
     section.order-form select,
     section.order-form input {
@@ -23,34 +24,35 @@
       margin-bottom: 10px;
     }
 
-    @media (min-width: 768px) {
-      #order-table {
-        display: table;
-        width: 100%;
-        border-collapse: collapse;
-      }
-      #order-table thead,
-      #order-table tbody,
-      #order-table tr,
-      #order-table td,
-      #order-table th {
-        border: 1px solid #ccc;
-        padding: 8px;
-      }
+    #order-table {
+      width: 100%;
+      border-collapse: collapse;
     }
 
-    @media (max-width: 767px) {
-      #order-table {
-        display: block;
-      }
-      .order-category {
-        margin-bottom: 20px;
-        border: 1px solid #ccc;
-        padding: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
+    #order-table th, #order-table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    /* Column widths as per requirement */
+    .category-col { width: 15%; }  /* Previously margin col width */
+    .item-col { width: 25%; }      /* Previously margin width applied */
+    .count-col { width: 8%; text-align: center; } /* Uses previous total column width */
+    .margin-col { width: 12%; } 
+    .mrp-col { width: 15%; }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: red;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    tfoot td {
+      font-weight: bold;
+      text-align: right;
     }
   </style>
 </head>
@@ -79,21 +81,26 @@
       <table id="order-table">
         <thead>
           <tr>
-            <th>Category</th>
-            <th>Item</th>
-            <th>Count</th>
-            <th>Margin Rate</th>
-            <th>Actual MRP</th>
-            <th>Total</th>
+            <th class="category-col">Category</th>
+            <th class="item-col">Item</th>
+            <th class="count-col">Count</th>
+            <th class="margin-col">Margin Rate</th>
+            <th class="mrp-col">Actual MRP</th>
+            <th style="width:40px;"></th> <!-- Delete column -->
           </tr>
         </thead>
         <tbody id="order-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6" id="grand-total">Total: 0.00</td>
+          </tr>
+        </tfoot>
       </table>
     </div>
 
     <button id="add-category">Add Category & Item</button>
 
-    <!-- Expected Delivery Date (Auto +1 Day) -->
+    <!-- Expected Delivery Date -->
     <label>Expected Delivery Date: <input type="date" id="delivery-date"></label>
 
     <button id="place-order" style="display:none;">Place Order</button>
@@ -124,11 +131,9 @@
       const orderTimeInput = document.getElementById("order-time");
       const deliveryDateInput = document.getElementById("delivery-date");
 
-      // Set order date and time
       orderDateInput.value = now.toISOString().split("T")[0];
       orderTimeInput.value = now.toTimeString().slice(0, 5);
 
-      // Set expected delivery date (+1 day)
       const tomorrow = new Date(now);
       tomorrow.setDate(tomorrow.getDate() + 1);
       deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
@@ -137,6 +142,17 @@
     const orderTbody = document.getElementById("order-tbody");
     const addCategoryBtn = document.getElementById("add-category");
     const placeOrderBtn = document.getElementById("place-order");
+    const grandTotalCell = document.getElementById("grand-total");
+
+    function updateGrandTotal() {
+      let total = 0;
+      document.querySelectorAll(".order-category").forEach(row => {
+        const count = parseFloat(row.querySelector(".count-col input").value) || 0;
+        const margin = parseFloat(row.querySelector(".margin-col input").value) || 0;
+        total += count * margin;
+      });
+      grandTotalCell.textContent = "Total: " + total.toFixed(2);
+    }
 
     addCategoryBtn.addEventListener("click", async () => {
       const categoriesSnap = await db.collection("products").get();
@@ -158,6 +174,7 @@
       countInput.type = "number";
       countInput.value = 1;
       countInput.min = 1;
+      countInput.max = 999;
 
       const marginInput = document.createElement("input");
       marginInput.type = "number";
@@ -167,8 +184,16 @@
       mrpInput.type = "number";
       mrpInput.step = "0.01";
 
-      const totalCell = document.createElement("td");
-      totalCell.textContent = "0.00";
+      const deleteBtn = document.createElement("button");
+      deleteBtn.innerHTML = "🗑️";
+      deleteBtn.classList.add("delete-btn");
+      deleteBtn.addEventListener("click", () => {
+        tr.remove();
+        updateGrandTotal();
+        if (orderTbody.children.length === 0) {
+          placeOrderBtn.style.display = "none";
+        }
+      });
 
       const updateItems = async () => {
         itemSelect.innerHTML = "";
@@ -194,32 +219,36 @@
           marginInput.value = data.margin || "";
           mrpInput.value = data.mrp || "";
         }
-        updateTotal();
-      };
-
-      const updateTotal = () => {
-        const count = parseFloat(countInput.value) || 0;
-        const margin = parseFloat(marginInput.value) || 0;
-        totalCell.textContent = (count * margin).toFixed(2);
+        updateGrandTotal();
       };
 
       categorySelect.addEventListener("change", updateItems);
       itemSelect.addEventListener("change", updateProductDetails);
-      countInput.addEventListener("input", updateTotal);
-      marginInput.addEventListener("input", updateTotal);
+      countInput.addEventListener("input", updateGrandTotal);
+      marginInput.addEventListener("input", updateGrandTotal);
 
       await updateItems();
 
-      const createTd = (el) => { const td = document.createElement("td"); td.appendChild(el); return td; };
-      tr.appendChild(createTd(categorySelect));
-      tr.appendChild(createTd(itemSelect));
-      tr.appendChild(createTd(countInput));
-      tr.appendChild(createTd(marginInput));
-      tr.appendChild(createTd(mrpInput));
-      tr.appendChild(totalCell);
+      const createTd = (el, className) => {
+        const td = document.createElement("td");
+        if (className) td.classList.add(className);
+        td.appendChild(el);
+        return td;
+      };
+
+      tr.appendChild(createTd(categorySelect, "category-col"));
+      tr.appendChild(createTd(itemSelect, "item-col"));
+      tr.appendChild(createTd(countInput, "count-col"));
+      tr.appendChild(createTd(marginInput, "margin-col"));
+      tr.appendChild(createTd(mrpInput, "mrp-col"));
+
+      const tdDelete = document.createElement("td");
+      tdDelete.appendChild(deleteBtn);
+      tr.appendChild(tdDelete);
 
       orderTbody.appendChild(tr);
       placeOrderBtn.style.display = "block";
+      updateGrandTotal();
     });
 
     document.getElementById("add-product").addEventListener("click", async () => {
