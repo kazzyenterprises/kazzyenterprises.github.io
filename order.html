@@ -8,6 +8,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <style>
+    section.order-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    section.order-form label, 
+    section.order-form select,
+    section.order-form input {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
     @media (min-width: 768px) {
       #order-table {
         display: table;
@@ -32,10 +47,9 @@
         margin-bottom: 20px;
         border: 1px solid #ccc;
         padding: 10px;
-      }
-      .order-category label {
-        display: block;
-        margin-bottom: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
     }
   </style>
@@ -43,8 +57,23 @@
 <body>
   <section class="order-form">
     <h1>Place Order</h1>
-    <label>Shop Name: <input type="text" id="shop-name"></label>
+
+    <!-- Auto-Filled Date and Time -->
+    <label>Date: <input type="date" id="order-date" readonly></label>
+    <label>Time: <input type="time" id="order-time" readonly></label>
+
+    <!-- Route Dropdown -->
+    <label>Route:
+      <select id="route">
+        <option value="">Select Route</option>
+        <option value="Route 1">Route 1</option>
+        <option value="Route 2">Route 2</option>
+        <option value="Route 3">Route 3</option>
+      </select>
+    </label>
+
     <label>Place: <input type="text" id="place"></label>
+    <label>Shop Name: <input type="text" id="shop-name"></label>
 
     <div id="order-sections">
       <table id="order-table">
@@ -55,21 +84,24 @@
             <th>Count</th>
             <th>Margin Rate</th>
             <th>Actual MRP</th>
+            <th>Total</th>
           </tr>
         </thead>
         <tbody id="order-tbody"></tbody>
       </table>
     </div>
-    
+
     <button id="add-category">Add Category & Item</button>
+
+    <!-- Expected Delivery Date (Auto +1 Day) -->
+    <label>Expected Delivery Date: <input type="date" id="delivery-date"></label>
+
     <button id="place-order" style="display:none;">Place Order</button>
-    
+
     <h2>Add New Product to DB</h2>
     <label>Category: <input type="text" id="new-category"></label>
     <label>Product Name: <input type="text" id="new-product"></label>
     <button id="add-product">Add Product</button>
-
-    <button id="place-order" style="display:none;">Place Order</button>
   </section>
 
   <script>
@@ -84,6 +116,23 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+
+    // Auto-fill Date, Time, and Delivery Date (+1 day)
+    window.addEventListener("DOMContentLoaded", () => {
+      const now = new Date();
+      const orderDateInput = document.getElementById("order-date");
+      const orderTimeInput = document.getElementById("order-time");
+      const deliveryDateInput = document.getElementById("delivery-date");
+
+      // Set order date and time
+      orderDateInput.value = now.toISOString().split("T")[0];
+      orderTimeInput.value = now.toTimeString().slice(0, 5);
+
+      // Set expected delivery date (+1 day)
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
+    });
 
     const orderTbody = document.getElementById("order-tbody");
     const addCategoryBtn = document.getElementById("add-category");
@@ -118,6 +167,9 @@
       mrpInput.type = "number";
       mrpInput.step = "0.01";
 
+      const totalCell = document.createElement("td");
+      totalCell.textContent = "0.00";
+
       const updateItems = async () => {
         itemSelect.innerHTML = "";
         const cat = categorySelect.value;
@@ -142,10 +194,20 @@
           marginInput.value = data.margin || "";
           mrpInput.value = data.mrp || "";
         }
+        updateTotal();
+      };
+
+      const updateTotal = () => {
+        const count = parseFloat(countInput.value) || 0;
+        const margin = parseFloat(marginInput.value) || 0;
+        totalCell.textContent = (count * margin).toFixed(2);
       };
 
       categorySelect.addEventListener("change", updateItems);
       itemSelect.addEventListener("change", updateProductDetails);
+      countInput.addEventListener("input", updateTotal);
+      marginInput.addEventListener("input", updateTotal);
+
       await updateItems();
 
       const createTd = (el) => { const td = document.createElement("td"); td.appendChild(el); return td; };
@@ -154,6 +216,7 @@
       tr.appendChild(createTd(countInput));
       tr.appendChild(createTd(marginInput));
       tr.appendChild(createTd(mrpInput));
+      tr.appendChild(totalCell);
 
       orderTbody.appendChild(tr);
       placeOrderBtn.style.display = "block";
@@ -171,9 +234,14 @@
     });
 
     placeOrderBtn.addEventListener("click", async () => {
-      const shop = document.getElementById("shop-name").value;
+      const date = document.getElementById("order-date").value;
+      const time = document.getElementById("order-time").value;
+      const route = document.getElementById("route").value;
       const place = document.getElementById("place").value;
+      const shop = document.getElementById("shop-name").value;
+      const deliveryDate = document.getElementById("delivery-date").value;
       const orders = [];
+
       document.querySelectorAll(".order-category").forEach(section => {
         const selects = section.querySelectorAll("select");
         const inputs = section.querySelectorAll("input");
@@ -186,14 +254,18 @@
         });
       });
 
-      if (!shop || !place || orders.length === 0) {
-        alert("Please fill all fields and add at least one order item.");
+      if (!route || !shop || !place || !deliveryDate || orders.length === 0) {
+        alert("Please fill Date, Time, Route, Place, Shop Name, Delivery Date and add at least one order item.");
         return;
       }
 
       await db.collection("orders").add({
+        date,
+        time,
+        route,
         shop,
         place,
+        deliveryDate,
         orders,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
