@@ -15,7 +15,6 @@
       max-width: 900px;
       margin: 0 auto;
     }
-
     section.order-form label,
     section.order-form select,
     section.order-form input {
@@ -24,35 +23,27 @@
       margin-bottom: 10px;
     }
 
-    /* Table Styling */
     #order-table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
     }
-
-    #order-table th,
-    #order-table td {
+    #order-table th, #order-table td {
       border: 1px solid #ccc;
       padding: 8px;
       text-align: left;
       vertical-align: middle;
     }
-
-    /* Column ratios (user requested) */
     .category-col { width: 30%; }
     .item-col     { width: 30%; }
     .count-col    { width: 10%; text-align: center; }
     .margin-col   { width: 15%; }
     .mrp-col      { width: 15%; }
-
-    /* Delete Button Column kept minimal so it does not affect ratios */
     #order-table th:last-child,
     #order-table td:last-child {
       width: 1px;
       text-align: center;
     }
-
     .delete-btn {
       background: none;
       border: none;
@@ -60,41 +51,55 @@
       font-size: 1.2rem;
       cursor: pointer;
     }
-
     tfoot td {
       font-weight: bold;
       text-align: right;
       padding-top: 12px;
     }
-
-    @media (max-width: 767px) {
-      #order-table {
-        display: block;
-        overflow-x: auto;
-      }
+    button.full-width-btn {
+      width: 100%;           /* take full width of parent */
+      padding: 12px;
+      font-size: 1.2rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
     }
+
+    button.full-width-btn:hover {
+      background-color: #0056b3;
+    }
+
+
+
   </style>
 </head>
 <body>
   <section class="order-form">
     <h1>Place Order</h1>
 
-    <!-- Auto-Filled Date and Time -->
+    <span id="order-id-display">Order ID: Generating...</span>
+
     <label>Date: <input type="date" id="order-date" readonly></label>
     <label>Time: <input type="time" id="order-time" readonly></label>
 
-    <!-- Route Dropdown -->
     <label>Route:
-      <select id="route">
-        <option value="">Select Route</option>
-        <option value="Route 1">Route 1</option>
-        <option value="Route 2">Route 2</option>
-        <option value="Route 3">Route 3</option>
-      </select>
+      <select id="route"></select>
     </label>
 
-    <label>Place: <input type="text" id="place"></label>
-    <label>Shop Name: <input type="text" id="shop-name"></label>
+    <label>Place:
+      <select id="place"></select>
+    </label>
+
+    <label>Shop Name:
+      <select id="shop-name"></select>
+    </label>
+
+    <label>Contact No: <input type="text" id="contact-no" value="+91"></label>
+    <label>Email: <input type="email" id="email"></label>
+    <label>Location: <input type="text" id="location"></label>
 
     <div id="order-sections">
       <table id="order-table">
@@ -105,14 +110,11 @@
             <th class="count-col">Count</th>
             <th class="margin-col">Margin Rate</th>
             <th class="mrp-col">Actual MRP</th>
-            <th></th> <!-- delete column (keeps its own small space) -->
+            <th></th>
           </tr>
         </thead>
-
         <tbody id="order-tbody"></tbody>
-
         <tfoot>
-          <!-- Grand total row at the end (spans all table columns) -->
           <tr>
             <td colspan="6" id="grand-total">Total: 0.00</td>
           </tr>
@@ -120,12 +122,17 @@
       </table>
     </div>
 
-    <button id="add-category">Add Category & Item</button>
+    <button id="add-category" class="full-width-btn">Add Category & Item</button>
 
-    <!-- Expected Delivery Date -->
-    <label>Expected Delivery Date: <input type="date" id="delivery-date"></label>
+    <label>Expected Delivery Date: 
+      <input type="date" id="delivery-date">
+    </label>
 
-    <button id="place-order" style="display:none;">Place Order</button>
+    <div class="order-id-container">
+      <button id="place-order" class="full-width-btn" style="display:none;">Place Order</button>
+    </div>
+
+
 
     <h2>Add New Product to DB</h2>
     <label>Category: <input type="text" id="new-category"></label>
@@ -142,39 +149,128 @@
       messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
       appId: "YOUR_APP_ID"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Auto-fill Date, Time, and Delivery Date (+1 day)
-    window.addEventListener("DOMContentLoaded", () => {
-      const now = new Date();
-      const orderDateInput = document.getElementById("order-date");
-      const orderTimeInput = document.getElementById("order-time");
-      const deliveryDateInput = document.getElementById("delivery-date");
-
-      orderDateInput.value = now.toISOString().split("T")[0];
-      orderTimeInput.value = now.toTimeString().slice(0, 5);
-
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
-    });
-
+    const orderDateInput = document.getElementById("order-date");
+    const orderTimeInput = document.getElementById("order-time");
+    const deliveryDateInput = document.getElementById("delivery-date");
+    const routeSelect = document.getElementById("route");
+    const placeSelect = document.getElementById("place");
+    const shopSelect = document.getElementById("shop-name");
+    const contactInput = document.getElementById("contact-no");
+    const emailInput = document.getElementById("email");
+    const locationInput = document.getElementById("location");
+    const orderIdDisplay = document.getElementById("order-id-display");
     const orderTbody = document.getElementById("order-tbody");
     const addCategoryBtn = document.getElementById("add-category");
     const placeOrderBtn = document.getElementById("place-order");
     const grandTotalCell = document.getElementById("grand-total");
 
-    // helper to create td with optional class
-    const createTd = (el, cls = "") => {
+    window.addEventListener("DOMContentLoaded", async () => {
+      const now = new Date();
+      orderDateInput.value = now.toISOString().split("T")[0];
+      orderTimeInput.value = now.toTimeString().slice(0, 5);
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          locationInput.value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+        }, () => { locationInput.placeholder = "Enter Location Manually"; });
+      }
+
+      const routesSnap = await db.collection("routes").get();
+      routeSelect.innerHTML = "";
+      if (routesSnap.empty) {
+        ["Route 1","Route 2","Route 3"].forEach(r=>{
+          const opt = document.createElement("option");
+          opt.value = r;
+          opt.textContent = r;
+          routeSelect.appendChild(opt);
+        });
+      } else {
+        routesSnap.forEach(doc => {
+          const opt = document.createElement("option");
+          opt.value = doc.data().name;
+          opt.textContent = doc.data().name;
+          routeSelect.appendChild(opt);
+        });
+      }
+
+      populatePlacesAndShops();
+      generateOrderId();
+    });
+
+    async function populatePlacesAndShops() {
+      const route = routeSelect.value;
+      placeSelect.innerHTML = "";
+      shopSelect.innerHTML = "";
+      let query = db.collection("shops");
+      if (route) query = query.where("route","==",route);
+      const shopsSnap = await query.get();
+      const places = [...new Set(shopsSnap.docs.map(d => d.data().place))];
+      places.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        placeSelect.appendChild(opt);
+      });
+      updateShops();
+    }
+
+    async function updateShops() {
+      const route = routeSelect.value;
+      const place = placeSelect.value;
+      shopSelect.innerHTML = "";
+      let query = db.collection("shops");
+      if (route) query = query.where("route","==",route);
+      if (place) query = query.where("place","==",place);
+      const shopsSnap = await query.get();
+      shopsSnap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.data().name;
+        opt.textContent = doc.data().name;
+        shopSelect.appendChild(opt);
+      });
+    }
+
+    routeSelect.addEventListener("change", populatePlacesAndShops);
+    placeSelect.addEventListener("change", updateShops);
+
+    async function generateOrderId() {
+      const now = new Date();
+      const month = now.toLocaleString('en-US',{month:'short'}).toUpperCase();
+      const day = String(now.getDate()).padStart(2,"0");
+      const prefix = `${month}${day}`;
+      const snap = await db.collection("orders").orderBy("timestamp","desc").limit(1).get();
+      let count = 1;
+      if (!snap.empty) {
+        const lastId = snap.docs[0].data().orderId || "";
+        if (lastId.startsWith(prefix)) {
+          const num = parseInt(lastId.split("/")[1]);
+          count = num+1;
+        }
+      }
+      const orderId = `${prefix}/${String(count).padStart(4,"0")}`;
+      orderIdDisplay.textContent = `Order ID: ${orderId}`;
+      orderIdDisplay.dataset.orderId = orderId;
+    }
+
+    contactInput.addEventListener("input", () => {
+      if (!contactInput.value.startsWith("+91")) contactInput.value = "+91";
+      contactInput.value = contactInput.value.replace(/[^0-9+]/g,"");
+      if (contactInput.value.length > 13) contactInput.value = contactInput.value.slice(0,13);
+    });
+
+    function createTd(el, cls = "") {
       const td = document.createElement("td");
       if (cls) td.className = cls;
       td.appendChild(el);
       return td;
-    };
+    }
 
-    // enforce integer 1..999 for count input
     function enforceCountBounds(input) {
       let v = Number(input.value);
       if (!Number.isFinite(v) || isNaN(v)) v = 1;
@@ -184,7 +280,6 @@
       input.value = v;
     }
 
-    // compute grand total (sum of count * margin)
     function updateGrandTotal() {
       let total = 0;
       document.querySelectorAll("tr.order-category").forEach(tr => {
@@ -198,7 +293,6 @@
     }
 
     addCategoryBtn.addEventListener("click", async () => {
-      // fetch distinct categories from products collection
       const categoriesSnap = await db.collection("products").get();
       const categories = [...new Set(categoriesSnap.docs.map(d => d.data().category))];
 
@@ -235,7 +329,6 @@
       mrpInput.className = "mrp-input";
       mrpInput.step = "0.01";
 
-      // populate items for the initial category and on category change
       const updateItems = async () => {
         itemSelect.innerHTML = "";
         const cat = categorySelect.value;
@@ -249,7 +342,6 @@
         await updateProductDetails();
       };
 
-      // set margin and mrp from product doc if present
       const updateProductDetails = async () => {
         const cat = categorySelect.value;
         const item = itemSelect.value;
@@ -265,34 +357,19 @@
         updateGrandTotal();
       };
 
-      // event listeners
       categorySelect.addEventListener("change", updateItems);
       itemSelect.addEventListener("change", updateProductDetails);
-
-      // ensure integer counts and update total
-      countInput.addEventListener("input", () => {
-        enforceCountBounds(countInput);
-        updateGrandTotal();
-      });
-      countInput.addEventListener("blur", () => {
-        enforceCountBounds(countInput);
-        updateGrandTotal();
-      });
-
-      // margin change updates total
+      countInput.addEventListener("input", () => { enforceCountBounds(countInput); updateGrandTotal(); });
       marginInput.addEventListener("input", updateGrandTotal);
-      marginInput.addEventListener("blur", updateGrandTotal);
 
-      await updateItems(); // populate items initially
+      await updateItems();
 
-      // build row cells (classes on <td> match ratios)
       tr.appendChild(createTd(categorySelect, "category-col"));
       tr.appendChild(createTd(itemSelect, "item-col"));
       tr.appendChild(createTd(countInput, "count-col"));
       tr.appendChild(createTd(marginInput, "margin-col"));
       tr.appendChild(createTd(mrpInput, "mrp-col"));
 
-      // delete button cell (keeps own small space, does not affect ratios)
       const deleteTd = document.createElement("td");
       const deleteBtn = document.createElement("button");
       deleteBtn.type = "button";
@@ -301,7 +378,6 @@
       deleteBtn.addEventListener("click", () => {
         tr.remove();
         updateGrandTotal();
-        // hide place order if no rows remain
         if (orderTbody.querySelectorAll("tr.order-category").length === 0) {
           placeOrderBtn.style.display = "none";
         }
@@ -314,7 +390,6 @@
       updateGrandTotal();
     });
 
-    // Add product to DB (unchanged)
     document.getElementById("add-product").addEventListener("click", async () => {
       const newCategory = document.getElementById("new-category").value.trim();
       const newProduct = document.getElementById("new-product").value.trim();
@@ -326,21 +401,22 @@
       }
     });
 
-    // Place order (unchanged, but collects only existing order-category rows)
     placeOrderBtn.addEventListener("click", async () => {
-      const date = document.getElementById("order-date").value;
-      const time = document.getElementById("order-time").value;
-      const route = document.getElementById("route").value;
-      const place = document.getElementById("place").value;
-      const shop = document.getElementById("shop-name").value;
-      const deliveryDate = document.getElementById("delivery-date").value;
-      const orders = [];
+      const date = orderDateInput.value;
+      const time = orderTimeInput.value;
+      const route = routeSelect.value;
+      const place = placeSelect.value;
+      const shop = shopSelect.value;
+      const contact = contactInput.value;
+      const email = emailInput.value;
+      const locationVal = locationInput.value;
+      const orderId = orderIdDisplay.dataset.orderId;
+      const deliveryDate = deliveryDateInput.value;
 
+      const orders = [];
       document.querySelectorAll("tr.order-category").forEach(tr => {
         const selects = tr.querySelectorAll("select");
         const inputs = tr.querySelectorAll("input");
-        // selects[0] = category, selects[1] = item
-        // inputs[0] = count, inputs[1] = margin, inputs[2] = mrp (order preserved)
         orders.push({
           category: selects[0]?.value || "",
           item: selects[1]?.value || "",
@@ -356,11 +432,15 @@
       }
 
       await db.collection("orders").add({
+        orderId,
         date,
         time,
         route,
-        shop,
         place,
+        shop,
+        contact,
+        email,
+        location: locationVal,
         deliveryDate,
         orders,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
