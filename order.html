@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Order Page - Kazzy Enterprises</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- ✅ Using Firebase compat version (v9) since your existing code uses compat syntax -->
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <style>
+    /* --- Your existing CSS stays the same --- */
     section.order-form {
       display: flex;
       flex-direction: column;
@@ -200,68 +202,115 @@
     <button id="add-product">Add Product</button>
   </section>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
+    authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
+    projectId: "kazzyenterprizes-c8ef7",
+    storageBucket: "kazzyenterprizes-c8ef7.firebasestorage.app",
+    messagingSenderId: "673988986305",
+    appId: "1:673988986305:web:efbdc6283a30483f1a1b40",
+    measurementId: "G-Z2W56NEGD6"
+  };
 
-    const USER_ID = "demo-user-1";
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    let productCache = [];
-    let draftOrderState = { rows: [] };
+  const USER_ID = "demo-user-1";
 
-    const orderDateInput = document.getElementById("order-date");
-    const orderTimeInput = document.getElementById("order-time");
-    const deliveryDateInput = document.getElementById("delivery-date");
-    const routeSelect = document.getElementById("route");
-    const placeSelect = document.getElementById("place");
-    const shopSelect = document.getElementById("shop-name");
-    const contactInput = document.getElementById("contact-no");
-    const emailInput = document.getElementById("email");
-    const locationInput = document.getElementById("location");
-    const orderIdDisplay = document.getElementById("order-id-display");
-    const orderTbody = document.getElementById("order-tbody");
-    const addCategoryBtn = document.getElementById("add-category");
-    const placeOrderBtn = document.getElementById("place-order");
-    const grandTotalCell = document.getElementById("grand-total");
+  let productCache = [];
+  let draftOrderState = { rows: [] };
+  let placesCache = []; // ✅ store all places for filtering
 
-    // ✅ restrict contact input to digits only
-    contactInput.addEventListener("input", (e) => {
-      contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+  const orderDateInput = document.getElementById("order-date");
+  const orderTimeInput = document.getElementById("order-time");
+  const deliveryDateInput = document.getElementById("delivery-date");
+  const routeSelect = document.getElementById("route");
+  const placeSelect = document.getElementById("place");
+  const shopSelect = document.getElementById("shop-name");
+  const contactInput = document.getElementById("contact-no");
+  const emailInput = document.getElementById("email");
+  const locationInput = document.getElementById("location");
+  const orderIdDisplay = document.getElementById("order-id-display");
+  const orderTbody = document.getElementById("order-tbody");
+  const addCategoryBtn = document.getElementById("add-category");
+  const placeOrderBtn = document.getElementById("place-order");
+  const grandTotalCell = document.getElementById("grand-total");
+
+  contactInput.addEventListener("input", (e) => {
+    contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+  });
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    const now = new Date();
+    orderDateInput.value = now.toISOString().split("T")[0];
+    orderTimeInput.value = now.toTimeString().slice(0, 5);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        locationInput.value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+      }, () => { locationInput.placeholder = "Enter Location Manually"; });
+    }
+
+    // ✅ Load products
+    const productsSnap = await db.collection("products").get();
+    productCache = productsSnap.docs.map(d => d.data());
+
+    // ✅ Fetch available routes from Firestore
+    const routesSnap = await db.collection("routes").get();
+    routesSnap.forEach(doc => {
+      const opt = document.createElement("option");
+      opt.value = doc.id;
+      opt.textContent = doc.data().name || doc.id;
+      routeSelect.appendChild(opt);
     });
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const now = new Date();
-      orderDateInput.value = now.toISOString().split("T")[0];
-      orderTimeInput.value = now.toTimeString().slice(0, 5);
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
+    // ✅ Fetch available places from Firestore & store them in cache
+    const placesSnap = await db.collection("places").get();
+    placesCache = placesSnap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          locationInput.value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-        }, () => { locationInput.placeholder = "Enter Location Manually"; });
-      }
-
-      const productsSnap = await db.collection("products").get();
-      productCache = productsSnap.docs.map(d => d.data());
-
-      const draftDoc = await db.collection("draftOrders").doc(USER_ID).get();
-      if (draftDoc.exists) {
-        draftOrderState = draftDoc.data();
-        restoreDraftToTable();
-      }
-
-      generateOrderId();
+    // ✅ Filter places when route changes
+    routeSelect.addEventListener("change", () => {
+      populatePlaces(routeSelect.value);
     });
+
+    // Populate initially if a route exists
+    if (routeSelect.value) {
+      populatePlaces(routeSelect.value);
+    }
+
+    const draftDoc = await db.collection("draftOrders").doc(USER_ID).get();
+    if (draftDoc.exists) {
+      draftOrderState = draftDoc.data();
+      restoreDraftToTable();
+    }
+
+    generateOrderId();
+  });
+
+  function populatePlaces(selectedRouteId) {
+    placeSelect.innerHTML = "";
+    const filtered = placesCache.filter(p => p.route_id === selectedRouteId);
+    if (filtered.length === 0) {
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No places found for this route";
+      placeSelect.appendChild(opt);
+      return;
+    }
+    filtered.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.name || p.id;
+      placeSelect.appendChild(opt);
+    });
+  }
 
     function restoreDraftToTable() {
       orderTbody.innerHTML = "";
