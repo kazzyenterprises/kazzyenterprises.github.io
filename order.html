@@ -94,53 +94,46 @@
 </head>
 <body>
   <section class="order-form">
-    <h1>Place Order</h1>
+    <h1>🛒 New Order</h1>
 
     <span id="order-id-display">Order ID: Generating...</span>
 
-    <label>Date: <input type="date" id="order-date" readonly></label>
-    <label>Time: <input type="time" id="order-time" readonly></label>
+    <label>Order Date: <input type="date" id="order-date" readonly></label>
+    <label>Order Time: <input type="time" id="order-time" readonly></label>
 
-    <label>Route:
+    <label>Select Route:
       <select id="route"></select>
     </label>
 
     <div class="row-with-button">
-      <label style="flex: 1;">Place:
+      <label style="flex: 1;">Select Place:
         <input list="places-list" id="place" placeholder="Select or add place" />
         <datalist id="places-list"></datalist>
       </label>
-      <button id="add-place-btn" type="button">Add Place</button>
     </div>
 
-    <div class="row-with-button">
-      <label style="flex: 0 0 60%;">Shop Name:
-        <input list="shops-list" id="shop-name" placeholder="Select or add shop" />
-        <datalist id="shops-list"></datalist>
-      </label>
-      <button id="shop-image-btn" type="button">Shop Image</button>
-      <button id="add-shop-btn" type="button">Add Shop Name</button>
+    <div class="shop-details">
+      <div class="row-with-button">
+        <label style="flex: 0 0 60%;">Select Shop Name:
+          <input list="shops-list" id="shop-name" placeholder="Select or add shop" />
+          <datalist id="shops-list"></datalist>
+        </label>
+      </div>
     </div>
 
-    <div class="contact-row">
-      <label>Contact No:
-        <span class="contact-prefix">+91</span>
-        <input type="text" id="contact-no" maxlength="10" placeholder="">
-      </label>
-    </div>
-
-    <label>Email: <input type="email" id="email"></label>
-    <label>Location: <input type="text" id="location"></label>
+      <a href="shop-management.html" target="_blank" class="manage-shop-link">
+        🏪 Manage Shops & Places
+      </a>
 
     <div id="order-sections">
       <table id="order-table">
         <thead>
           <tr>
-            <th class="category-col">Category</th>
-            <th class="item-col">Item</th>
-            <th class="count-col">Count</th>
-            <th class="margin-col">Margin Rate</th>
-            <th class="mrp-col">Actual MRP</th>
+            <th class="category-col">Product Category</th>
+            <th class="item-col">Product Name</th>
+            <th class="count-col">Order Qty</th>
+            <th class="margin-col">Selling Price</th>
+            <th class="mrp-col">MRP</th>
             <th></th>
           </tr>
         </thead>
@@ -154,109 +147,118 @@
     </div>
 
     <div class="button-row">
-      <button id="add-category" class="full-width-btn">Add Category & Item</button>
+      <button id="add-product-row" class="full-width-btn">➕ Add Product Row</button>
     </div>
 
-    <label>Expected Delivery Date:
+    <label>Delivery Date:
       <input type="date" id="delivery-date">
     </label>
 
-    <div class="row-with-button">
-      <button id="item-image-btn" type="button">Item Image</button>
-    </div>
+    <button id="place-order" class="full-width-btn" style="display:none;">✅ Submit Order</button>
 
-    <button id="place-order" class="full-width-btn" style="display:none;">Place Order</button>
+    <div class="row-with-button">
+      <button id="item-image-btn" type="button">📷 Product Image</button>
+    </div>
 
     <h2>Add New Product to DB</h2>
     <label>Category: <input type="text" id="new-category"></label>
     <label>Product Name: <input type="text" id="new-product"></label>
     <button id="add-product">Add Product</button>
-  </section>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
-      authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
-      projectId: "kazzyenterprizes-c8ef7",
-      storageBucket: "kazzyenterprizes-c8ef7.firebasestorage.app",
-      messagingSenderId: "673988986305",
-      appId: "1:673988986305:web:efbdc6283a30483f1a1b40",
-      measurementId: "G-Z2W56NEGD6"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
+    authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
+    projectId: "kazzyenterprizes-c8ef7",
+    storageBucket: "kazzyenterprizes-c8ef7.firebasestorage.app",
+    messagingSenderId: "673988986305",
+    appId: "1:673988986305:web:efbdc6283a30483f1a1b40",
+    measurementId: "G-Z2W56NEGD6"
+  };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-    const USER_ID = "demo-user-1";
+  const USER_ID = "demo-user-1";
 
-    let productCache = [];
-    let placesCache = [];
-    let draftOrderState = { rows: [] };
+  let productCache = [];
+  let placesCache = [];
+  let draftOrderState = {
+    routeId: "",
+    placeId: "",
+    placeName: "",
+    shopId: "",
+    shopName: "",
+    deliveryDate: "",
+    rows: []
+  };
 
-    const orderDateInput = document.getElementById("order-date");
-    const orderTimeInput = document.getElementById("order-time");
-    const deliveryDateInput = document.getElementById("delivery-date");
-    const routeSelect = document.getElementById("route");
-    const placeInput = document.getElementById("place");
-    const placesList = document.getElementById("places-list");
-    const addPlaceBtn = document.getElementById("add-place-btn");
-    const shopSelect = document.getElementById("shop-name");
-    const contactInput = document.getElementById("contact-no");
-    const emailInput = document.getElementById("email");
-    const locationInput = document.getElementById("location");
-    const orderIdDisplay = document.getElementById("order-id-display");
-    const orderTbody = document.getElementById("order-tbody");
-    const addCategoryBtn = document.getElementById("add-category");
-    const placeOrderBtn = document.getElementById("place-order");
-    const grandTotalCell = document.getElementById("grand-total");
-    const shopsList = document.getElementById("shops-list");
+  // Elements
+  const orderDateInput = document.getElementById("order-date");
+  const orderTimeInput = document.getElementById("order-time");
+  const deliveryDateInput = document.getElementById("delivery-date");
+  const routeSelect = document.getElementById("route");
+  const placeInput = document.getElementById("place");
+  const placesList = document.getElementById("places-list");
+  const shopSelect = document.getElementById("shop-name");
+  const shopsList = document.getElementById("shops-list");
+  const orderIdDisplay = document.getElementById("order-id-display");
+  const orderTbody = document.getElementById("order-tbody");
+  const addProductRowBtn = document.getElementById("add-product-row");
+  const placeOrderBtn = document.getElementById("place-order");
+  const grandTotalCell = document.getElementById("grand-total");
 
-    contactInput.addEventListener("input", () => {
-      contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
-    });
+  window.addEventListener("DOMContentLoaded", async () => {
+    // Set default dates
+    const now = new Date();
+    orderDateInput.value = now.toISOString().split("T")[0];
+    orderTimeInput.value = now.toTimeString().slice(0, 5);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
 
-    window.addEventListener("DOMContentLoaded", async () => {
-      const now = new Date();
-      orderDateInput.value = now.toISOString().split("T")[0];
-      orderTimeInput.value = now.toTimeString().slice(0, 5);
-      const tomorrow = new Date(now);
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
-
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          locationInput.value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-        }, () => { locationInput.placeholder = "Enter Location Manually"; });
-      }
-
-      // Fetch products for table dropdowns
+    // Fetch products
+    try {
       const productsSnap = await db.collection("products").get();
       productCache = productsSnap.docs.map(d => d.data());
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
 
-      // Fetch routes for route dropdown
+    // Fetch routes
+    try {
       const routesSnap = await db.collection("routes").get();
       routesSnap.forEach(doc => {
         const opt = document.createElement("option");
-        opt.value = doc.id;
-        opt.textContent = doc.data().name;
+        opt.value = doc.id; // lowercase docId for routeId
+        opt.textContent = doc.data().name || doc.id;
         routeSelect.appendChild(opt);
       });
+    } catch (err) {
+      console.error("Error fetching routes:", err);
+    }
 
-      await fetchPlacesForSelectedRoute();
+    await fetchPlacesForSelectedRoute();
+    routeSelect.addEventListener("change", fetchPlacesForSelectedRoute);
+    placeInput.addEventListener("input", fetchShopsForSelectedPlace);
 
-      routeSelect.addEventListener("change", fetchPlacesForSelectedRoute);
-      placeInput.addEventListener("change", fetchShopsForSelectedPlace);
-
+    // Load draft if exists
+    try {
       const draftDoc = await db.collection("draftOrders").doc(USER_ID).get();
       if (draftDoc.exists) {
         draftOrderState = draftDoc.data();
+        restoreDraftToForm();
         restoreDraftToTable();
       }
+    } catch (err) {
+      console.error("Error loading draft order:", err);
+    }
 
-      generateOrderId();
-    });
+    generateOrderId();
+  });
 
-    async function fetchPlacesForSelectedRoute() {
+  async function fetchPlacesForSelectedRoute() {
+    try {
       placesList.innerHTML = "";
       placesCache = [];
 
@@ -275,19 +277,21 @@
         placesList.appendChild(opt);
       });
 
-      console.log("DEBUG - Places fetched:", placesCache);
+    } catch (err) {
+      console.error("Error fetching places:", err);
     }
+  }
 
-    async function fetchShopsForSelectedPlace() {
+  async function fetchShopsForSelectedPlace() {
+    try {
       shopSelect.value = "";
       shopsList.innerHTML = "";
 
       const routeId = routeSelect.value;
-      const placeName = placeInput.value.trim().toLowerCase();
+      const placeNameRaw = placeInput.value.trim();
+      if (!routeId || !placeNameRaw) return;
 
-      console.log("DEBUG - Fetching shops for:", { routeId, placeId: placeName });
-
-      if (!routeId || !placeName) return;
+      const placeName = placeNameRaw.toLowerCase();
 
       const snap = await db.collection("shops")
         .where("routeId", "==", routeId)
@@ -295,297 +299,291 @@
         .get();
 
       if (snap.empty) {
-        console.log("DEBUG - No shops found.");
         const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "No shops found";
+        opt.value = "No shops found";
         shopsList.appendChild(opt);
         return;
       }
 
       snap.forEach(doc => {
         const data = doc.data();
-        console.log("DEBUG - Shop found:", data);
         const opt = document.createElement("option");
         opt.value = data.name;
+        opt.dataset.id = doc.id;
         shopsList.appendChild(opt);
       });
+    } catch (err) {
+      console.error("Error fetching shops:", err);
+    }
+  }
+
+  function restoreDraftToForm() {
+    routeSelect.value = draftOrderState.routeId || "";
+
+    // Prefer placeName, fallback to placeId with capitalization
+    if (draftOrderState.placeName) {
+      placeInput.value = draftOrderState.placeName;
+    } else if (draftOrderState.placeId) {
+      placeInput.value =
+        draftOrderState.placeId.charAt(0).toUpperCase() + draftOrderState.placeId.slice(1);
+    } else {
+      placeInput.value = "";
     }
 
-    addPlaceBtn.addEventListener("click", async () => {
-      let newPlaceName = placeInput.value.trim();
-      if (!newPlaceName) return alert("Enter a place name first.");
-      if (!routeSelect.value) return alert("Select a route first.");
+    shopSelect.value = draftOrderState.shopName || "";
+    deliveryDateInput.value = draftOrderState.deliveryDate || deliveryDateInput.value;
+  }
 
-      newPlaceName = newPlaceName.charAt(0).toUpperCase() + newPlaceName.slice(1).toLowerCase();
+  function restoreDraftToTable() {
+    orderTbody.innerHTML = ""; // Clear table first
+    if (!draftOrderState.rows || !draftOrderState.rows.length) return;
 
-      const exists = placesCache.some(p => p.name.toLowerCase() === newPlaceName.toLowerCase());
-      if (exists) return alert("This place already exists in this route.");
-
-      const confirmed = confirm(`Add new place?\n\nRoute: ${routeSelect.value}\nPlace: ${newPlaceName}`);
-      if (!confirmed) return;
-
-      await db.collection("places").doc(newPlaceName.toLowerCase()).set({
-        name: newPlaceName,
-        routeId: routeSelect.value
-      });
-
-      await fetchPlacesForSelectedRoute();
-      placeInput.value = newPlaceName;
-      alert("Place added successfully.");
+    draftOrderState.rows.forEach(row => {
+      createRow(row);
     });
 
-    const addShopBtn = document.getElementById("add-shop-btn");
+    updateGrandTotal();
+  }
 
-    addShopBtn.addEventListener("click", async () => {
-      if (!routeSelect.value) return alert("Select a route first.");
-      if (!placeInput.value.trim()) return alert("Select or enter a place first.");
+  async function saveDraftToFirestore() {
+    const cleanRows = draftOrderState.rows.filter(r =>
+      r.productCategory && r.productName && r.orderQuantity > 0
+    );
 
-      const routeId = routeSelect.value;
-      const placeId = placeInput.value.trim().toLowerCase();
+    const placeNameRaw = placeInput.value.trim();
+    const placeId = placeNameRaw.toLowerCase();
 
-      // ✅ 1. Check if route exists
-      const routeSnap = await db.collection("routes").doc(routeId).get();
-      if (!routeSnap.exists) {
-        alert(`The route "${routeId}" does not exist. Please select or create a valid route first.`);
-        return;
-      }
+    const selectedShopOption = [...shopsList.options].find(
+      opt => opt.value === shopSelect.value
+    );
+    const shopId = selectedShopOption?.dataset.id || "";
 
-      // ✅ 2. Check if place exists in that route
-      const placeSnap = await db.collection("places")
-        .where("routeId", "==", routeId)
-        .where("name", "==", placeId.charAt(0).toUpperCase() + placeId.slice(1))
-        .get();
+    const draftData = {
+      routeId: routeSelect.value.trim().toLowerCase(),
+      placeId,
+      placeName: placeNameRaw, // ✅ always save original placeName
+      shopId,
+      shopName: shopSelect.value,
+      deliveryDate: deliveryDateInput.value,
+      rows: cleanRows,
+      lastUpdated: new Date().toISOString()
+    };
 
-      if (placeSnap.empty) {
-        alert(`The place "${placeInput.value}" does not exist under route "${routeId}". Please correct the place first.`);
-        return;
-      }
+    if (JSON.stringify(draftData) !== JSON.stringify(draftOrderState)) {
+      draftOrderState = draftData;
+      await db.collection("draftOrders").doc(USER_ID).set(draftData);
+    }
+  }
 
-      // ✅ Use value from shop field if already typed
-      let newShopName = shopSelect.value.trim();
+  function getProduct(category, itemName) {
+    return productCache.find(
+      p => p.category === category && p.name === itemName
+    );
+  }
 
-      // If field is empty, fallback to prompt
-      if (!newShopName) {
-        newShopName = prompt("Enter new shop name:");
-        if (!newShopName) return;
-      }
+  function createRow(rowData = {}) {
+    const tr = document.createElement("tr");
+    tr.className = "order-category";
 
-      const formattedShopName =
-        newShopName.charAt(0).toUpperCase() + newShopName.slice(1).toLowerCase();
+    const categories = [...new Set(productCache.map(p => p.category))];
 
-      const confirmed = confirm(
-        `Add new shop?\n\nRoute: ${routeId}\nPlace: ${placeInput.value}\nShop: ${formattedShopName}`
-      );
-      if (!confirmed) return;
-
-      // ✅ Check if shop already exists
-      const existingSnap = await db.collection("shops")
-        .where("routeId", "==", routeId)
-        .where("placeId", "==", placeId)
-        .where("name", "==", formattedShopName)
-        .get();
-
-      if (!existingSnap.empty) {
-        return alert("This shop already exists for this place.");
-      }
-
-      // ✅ Add shop if all checks passed
-      await db.collection("shops").add({
-        name: formattedShopName,
-        routeId,
-        placeId
-      });
-
-      alert("Shop added successfully.");
-      await fetchShopsForSelectedPlace();
-      shopSelect.value = formattedShopName;
+    const categorySelect = document.createElement("select");
+    categories.forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat;
+      opt.textContent = cat;
+      categorySelect.appendChild(opt);
     });
+    categorySelect.value = rowData.productCategory || categories[0] || "";
 
+    const itemSelect = document.createElement("select");
+    populateItems(categorySelect.value, itemSelect);
+    itemSelect.value = rowData.productName || "";
 
+    const countInput = document.createElement("input");
+    countInput.type = "number";
+    countInput.className = "count-input";
+    countInput.max = 999;
+    countInput.step = 1;
+    countInput.value = rowData.orderQuantity ?? "";
 
-    function restoreDraftToTable() {
-      orderTbody.innerHTML = "";
-      draftOrderState.rows.forEach(row => createRow(row));
-      if (draftOrderState.rows.length > 0) placeOrderBtn.style.display = "block";
-      updateGrandTotal();
-    }
+    const marginInput = document.createElement("input");
+    marginInput.type = "number";
+    marginInput.className = "margin-input";
+    marginInput.step = "0.01";
+    marginInput.value = rowData.sellingPrice || "";
 
-    async function saveDraftToFirestore() {
-      await db.collection("draftOrders").doc(USER_ID).set(draftOrderState);
-    }
+    const mrpInput = document.createElement("input");
+    mrpInput.type = "number";
+    mrpInput.className = "mrp-input";
+    mrpInput.step = "0.01";
+    mrpInput.value = rowData.mrp || "";
 
-    function createRow(rowData = {}) {
-      const tr = document.createElement("tr");
-      tr.className = "order-category";
-
-      const categorySelect = document.createElement("select");
-      const categories = [...new Set(productCache.map(p => p.category))];
-      categories.forEach(cat => {
-        const opt = document.createElement("option");
-        opt.value = cat;
-        opt.textContent = cat;
-        categorySelect.appendChild(opt);
-      });
-      categorySelect.value = rowData.category || categories[0] || "";
-
-      const itemSelect = document.createElement("select");
+    categorySelect.addEventListener("change", () => {
       populateItems(categorySelect.value, itemSelect);
-      itemSelect.value = rowData.item || "";
+      itemSelect.value = "";
+      marginInput.value = "";
+      mrpInput.value = "";
+      updateDraftState();
+    });
 
-      const countInput = document.createElement("input");
-      countInput.type = "number";
-      countInput.className = "count-input";
-      countInput.min = 1;
-      countInput.max = 999;
-      countInput.step = 1;
-      countInput.value = rowData.count || 1;
+    itemSelect.addEventListener("change", () => {
+      const selectedProduct = getProduct(categorySelect.value, itemSelect.value);
+      if (selectedProduct) {
+        marginInput.value = selectedProduct.defaultMarginPrice ?? "";
+        mrpInput.value = selectedProduct.mrp ?? "";
+      }
+      updateDraftState();
+    });
 
-      const marginInput = document.createElement("input");
-      marginInput.type = "number";
-      marginInput.className = "margin-input";
-      marginInput.step = "0.01";
-      marginInput.value = rowData.margin || "";
+    countInput.addEventListener("input", updateDraftState);
+    marginInput.addEventListener("input", updateDraftState);
+    mrpInput.addEventListener("input", updateDraftState);
 
-      const mrpInput = document.createElement("input");
-      mrpInput.type = "number";
-      mrpInput.className = "mrp-input";
-      mrpInput.step = "0.01";
-      mrpInput.value = rowData.mrp || "";
-
-      categorySelect.addEventListener("change", () => {
-        populateItems(categorySelect.value, itemSelect);
-        updateDraftState();
-      });
-      itemSelect.addEventListener("change", updateDraftState);
-      countInput.addEventListener("input", () => { enforceCountBounds(countInput); updateDraftState(); });
-      marginInput.addEventListener("input", updateDraftState);
-      mrpInput.addEventListener("input", updateDraftState);
-
-      tr.appendChild(createTd(categorySelect, "category-col"));
-      tr.appendChild(createTd(itemSelect, "item-col"));
-      tr.appendChild(createTd(countInput, "count-col"));
-      tr.appendChild(createTd(marginInput, "margin-col"));
-      tr.appendChild(createTd(mrpInput, "mrp-col"));
-
-      const deleteTd = document.createElement("td");
-      const deleteBtn = document.createElement("button");
-      deleteBtn.type = "button";
-      deleteBtn.className = "delete-btn";
-      deleteBtn.innerHTML = "🗑️";
-      deleteBtn.addEventListener("click", () => {
-        tr.remove();
-        updateDraftState();
-      });
-      deleteTd.appendChild(deleteBtn);
-      tr.appendChild(deleteTd);
-
-      orderTbody.appendChild(tr);
-    }
-
-    function populateItems(category, selectEl) {
-      selectEl.innerHTML = "";
-      const items = productCache.filter(p => p.category === category);
-      items.forEach(p => {
-        const opt = document.createElement("option");
-        opt.value = p.name;
-        opt.textContent = p.name;
-        selectEl.appendChild(opt);
-      });
-    }
-
-    function updateDraftState() {
-      draftOrderState.rows = [];
-      document.querySelectorAll("tr.order-category").forEach(tr => {
-        const selects = tr.querySelectorAll("select");
-        const inputs = tr.querySelectorAll("input");
-        draftOrderState.rows.push({
-          category: selects[0].value,
-          item: selects[1].value,
-          count: parseInt(inputs[0].value, 10),
-          margin: parseFloat(inputs[1].value) || 0,
-          mrp: parseFloat(inputs[2].value) || 0
-        });
-      });
-      updateGrandTotal();
-      saveDraftToFirestore();
-    }
-
-    function createTd(el, cls = "") {
-      const td = document.createElement("td");
-      if (cls) td.className = cls;
-      td.appendChild(el);
-      return td;
-    }
-
-    function enforceCountBounds(input) {
-      let v = Number(input.value);
-      if (!Number.isFinite(v) || isNaN(v)) v = 1;
-      v = Math.floor(v);
-      if (v < 1) v = 1;
-      if (v > 999) v = 999;
-      input.value = v;
-    }
-
-    function updateGrandTotal() {
-      let total = 0;
-      draftOrderState.rows.forEach(r => {
-        total += r.count * r.margin;
-      });
-      grandTotalCell.textContent = "Total: " + total.toFixed(2);
-    }
-
-    addCategoryBtn.addEventListener("click", async () => {
-      addCategoryBtn.disabled = true;
-      createRow();
+    const deleteTd = document.createElement("td");
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "delete-btn";
+    deleteBtn.innerHTML = "🗑️";
+    deleteBtn.addEventListener("click", async () => {
+      tr.remove();
       updateDraftState();
       await saveDraftToFirestore();
-      addCategoryBtn.disabled = false;
-      placeOrderBtn.style.display = "block";
     });
+    deleteTd.appendChild(deleteBtn);
 
-    placeOrderBtn.addEventListener("click", async () => {
-      const orderId = orderIdDisplay.dataset.orderId;
-      const fullContact = "+91" + contactInput.value;
-      await db.collection("orders").add({
-        userId: USER_ID,
-        orderId,
-        date: orderDateInput.value,
-        time: orderTimeInput.value,
-        route: routeSelect.value,
-        place: placeInput.value,
-        shop: shopSelect.value,
-        contact: fullContact,
-        email: emailInput.value,
-        location: locationInput.value,
-        deliveryDate: deliveryDateInput.value,
-        orders: draftOrderState.rows,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      await db.collection("draftOrders").doc(USER_ID).delete();
-      alert("Order placed successfully!");
-      location.reload();
+    tr.appendChild(createTd(categorySelect, "category-col"));
+    tr.appendChild(createTd(itemSelect, "item-col"));
+    tr.appendChild(createTd(countInput, "count-col"));
+    tr.appendChild(createTd(marginInput, "margin-col"));
+    tr.appendChild(createTd(mrpInput, "mrp-col"));
+    tr.appendChild(deleteTd);
+
+    orderTbody.appendChild(tr);
+  }
+
+  function createTd(el, cls = "") {
+    const td = document.createElement("td");
+    if (cls) td.className = cls;
+    td.appendChild(el);
+    return td;
+  }
+
+  function populateItems(category, selectEl) {
+    selectEl.innerHTML = "";
+    const items = productCache.filter(p => p.category === category);
+    items.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.name;
+      opt.textContent = p.name;
+      selectEl.appendChild(opt);
     });
+  }
 
-    async function generateOrderId() {
-      const now = new Date();
-      const month = now.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-      const day = String(now.getDate()).padStart(2, "0");
-      const prefix = `${month}${day}`;
-      const snap = await db.collection("orders").orderBy("timestamp", "desc").limit(1).get();
-      let count = 1;
-      if (!snap.empty) {
-        const lastId = snap.docs[0].data().orderId || "";
-        if (lastId.startsWith(prefix)) {
-          const num = parseInt(lastId.split("/")[1]);
-          count = num + 1;
-        }
+  function updateDraftState() {
+    draftOrderState.rows = [];
+    document.querySelectorAll("tr.order-category").forEach(tr => {
+      const selects = tr.querySelectorAll("select");
+      const inputs = tr.querySelectorAll("input");
+
+      const productCategory = selects[0].value;
+      const productName = selects[1].value;
+      const orderQuantity = parseInt(inputs[0].value, 10) || 0;
+      const sellingPrice = parseFloat(inputs[1].value) || 0;
+      const mrp = parseFloat(inputs[2].value) || 0;
+
+      if (productName && orderQuantity > 0) {
+        draftOrderState.rows.push({
+          productCategory,
+          productName,
+          orderQuantity,
+          sellingPrice,
+          mrp
+        });
       }
-      const orderId = `${prefix}/${String(count).padStart(4, "0")}`;
-      orderIdDisplay.textContent = `Order ID: ${orderId}`;
-      orderIdDisplay.dataset.orderId = orderId;
+    });
+
+    updateGrandTotal();
+  }
+
+  function updateGrandTotal() {
+    let total = 0;
+    draftOrderState.rows.forEach(r => {
+      total += r.orderQuantity * r.sellingPrice;
+    });
+    grandTotalCell.textContent = "Total: " + total.toFixed(2);
+  }
+
+  addProductRowBtn.addEventListener("click", async () => {
+    const lastTr = orderTbody.lastElementChild;
+    if (lastTr) {
+      const selects = lastTr.querySelectorAll("select");
+      const inputs = lastTr.querySelectorAll("input");
+      const lastProduct = selects[1]?.value || "";
+      const lastQty = parseInt(inputs[0]?.value, 10) || 0;
+      if (!lastProduct || lastQty <= 0) {
+        return alert("⚠️ Please fill the existing row before adding a new one.");
+      }
     }
-    </script>
+    createRow();
+    updateDraftState();
+    await saveDraftToFirestore();
+    placeOrderBtn.style.display = "block";
+  });
+
+  placeOrderBtn.addEventListener("click", async () => {
+    const orderId = orderIdDisplay.dataset.orderId;
+    if (!orderId) return alert("Missing Order ID. Try again.");
+
+    if (!draftOrderState.rows.length) {
+      return alert("No items to place order.");
+    }
+
+    await db.collection("orders").doc(orderId).set({
+      userId: USER_ID,
+      orderDate: orderDateInput.value,
+      orderTime: orderTimeInput.value,
+      deliveryDate: deliveryDateInput.value,
+      routeId: routeSelect.value,
+      placeId: placeInput.value.toLowerCase(),
+      shopId: draftOrderState.shopId,
+      shopName: shopSelect.value,
+      items: draftOrderState.rows,
+      total: draftOrderState.rows.reduce((sum, r) => sum + (r.orderQuantity * r.sellingPrice), 0),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    await db.collection("draftOrders").doc(USER_ID).delete();
+
+    alert("✅ Order placed successfully!");
+    location.reload();
+  });
+
+  async function generateOrderId() {
+    const now = new Date();
+    const month = now.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+    const day = String(now.getDate()).padStart(2, "0");
+    const prefix = `${month}${day}`;
+
+    const snap = await db.collection("orders")
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .get();
+
+    let count = 1;
+    if (!snap.empty) {
+      const lastId = snap.docs[0].id;
+      if (lastId.startsWith(prefix)) {
+        const num = parseInt(lastId.split("/")[1]) || 0;
+        count = num + 1;
+      }
+    }
+
+    const orderId = `${prefix}/${String(count).padStart(4, "0")}`;
+    orderIdDisplay.dataset.orderId = orderId;
+    orderIdDisplay.textContent = `Order ID: ${orderId}`;
+  }
+</script>
 
 </body>
 </html>
