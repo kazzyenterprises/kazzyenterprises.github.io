@@ -113,171 +113,200 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      // ✅ Initialize Firebase
-      const firebaseConfig = {
-        apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
-        authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
-        projectId: "kazzyenterprizes-c8ef7",
-        storageBucket: "kazzyenterprizes-c8ef7.firebasestorage.app",
-        messagingSenderId: "673988986305",
-        appId: "1:673988986305:web:efbdc6283a30483f1a1b40",
-        measurementId: "G-Z2W56NEGD6"
-      };
-      firebase.initializeApp(firebaseConfig);
-      const db = firebase.firestore();
+document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ Initialize Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
+    authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
+    projectId: "kazzyenterprizes-c8ef7",
+    storageBucket: "kazzyenterprizes-c8ef7.firebasestorage.app",
+    messagingSenderId: "673988986305",
+    appId: "1:673988986305:web:efbdc6283a30483f1a1b40",
+    measurementId: "G-Z2W56NEGD6"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-      const routeSelect = document.getElementById("route-select");
-      const placeInput = document.getElementById("place-input");
-      const placesList = document.getElementById("places-list");
-      const shopInput = document.getElementById("shop-name");
-      const shopsList = document.getElementById("shops-list");
-      const addShopBtn = document.getElementById("add-shop-btn");
-      const contactInput = document.getElementById("contact-no");
-      const emailInput = document.getElementById("email");
-      const locationInput = document.getElementById("location");
-      const locationLinkInput = document.getElementById("location-link");
+  // DOM Elements
+  const routeSelect = document.getElementById("route-select");
+  const placeInput = document.getElementById("place-input");
+  const placesList = document.getElementById("places-list");
+  const shopInput = document.getElementById("shop-name");
+  const shopsList = document.getElementById("shops-list");
+  const addShopBtn = document.getElementById("add-shop-btn");
+  const contactInput = document.getElementById("contact-no");
+  const emailInput = document.getElementById("email");
+  const locationInput = document.getElementById("location");
+  const locationLinkInput = document.getElementById("location-link");
 
-      // ✅ Force contact number to digits only
-      contactInput.addEventListener("input", () => {
-        contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+  // ✅ Force contact number to digits only
+  contactInput.addEventListener("input", () => {
+    contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+  });
+
+  // ✅ Auto-set GPS coordinates
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        locationInput.value = `${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`;
+      },
+      err => console.warn("GPS not available:", err)
+    );
+  }
+
+  // -------------------- Utility Functions --------------------
+
+  function normalizeId(str) {
+    return String(str || "").trim().toLowerCase().replace(/\s+/g, "_");
+  }
+
+  function generatePlaceId(routeId, placeName) {
+    return `${normalizeId(routeId)}_${normalizeId(placeName)}`;
+  }
+
+  function generateShopDocId(routeId, placeName, shopName) {
+    return `${normalizeId(routeId)}_${normalizeId(placeName)}_${normalizeId(shopName)}`;
+  }
+
+  // -------------------- Fetch Routes & Places --------------------
+
+  async function fetchRoutes() {
+    try {
+      const snap = await db.collection("routes").get();
+      routeSelect.innerHTML = "<option value=''>Select Route</option>";
+      snap.forEach(doc => {
+        const opt = document.createElement("option");
+        opt.value = doc.id; // keep original routeId
+        opt.textContent = doc.data().name || doc.id;
+        routeSelect.appendChild(opt);
       });
+    } catch (err) {
+      console.error("Error fetching routes:", err);
+    }
+  }
 
-      // ✅ Auto-set GPS coordinates
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => {
-            locationInput.value = `${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`;
-          },
-          err => console.warn("GPS not available:", err)
-        );
-      }
+  async function fetchPlacesForSelectedRoute() {
+    placesList.innerHTML = "";
+    if (!routeSelect.value) return;
 
-      function normalizeId(str) {
-        return String(str || "").trim().toLowerCase().replace(/\s+/g, "_");
-      }
+    const snap = await db.collection("places")
+      .where("routeId", "==", routeSelect.value)
+      .get();
 
-      async function fetchRoutes() {
-        try {
-          const snap = await db.collection("routes").get();
-          snap.forEach(doc => {
-            const opt = document.createElement("option");
-            opt.value = doc.id;
-            opt.textContent = doc.data().name || doc.id;
-            routeSelect.appendChild(opt);
-          });
-        } catch (err) {
-          console.error("Error fetching routes:", err);
-        }
-      }
-
-      async function fetchPlacesForSelectedRoute() {
-        placesList.innerHTML = "";
-        if (!routeSelect.value) return;
-        const snap = await db.collection("places")
-          .where("routeId", "==", routeSelect.value)
-          .get();
-        snap.forEach(doc => {
-          const opt = document.createElement("option");
-          opt.value = doc.data().name;
-          placesList.appendChild(opt);
-        });
-      }
-
-      async function fetchShopsForSelectedPlace() {
-        shopsList.innerHTML = "";
-        const placeName = placeInput.value.trim().toLowerCase();
-        if (!routeSelect.value || !placeName) return;
-        const snap = await db.collection("shops")
-          .where("routeId", "==", routeSelect.value)
-          .where("placeId", "==", placeName)
-          .get();
-        snap.forEach(doc => {
-          const opt = document.createElement("option");
-          opt.value = doc.data().name;
-          shopsList.appendChild(opt);
-        });
-      }
-
-      async function checkAndAddPlace(routeId, placeName) {
-        const placeId = normalizeId(placeName);
-        const placeRef = db.collection("places").doc(placeId);
-        const placeDoc = await placeRef.get();
-
-        if (!placeDoc.exists) {
-          const confirmAdd = confirm(`Place "${placeName}" does not exist under this route. Add it?`);
-          if (!confirmAdd) return null;
-          await placeRef.set({
-            name: placeName.charAt(0).toUpperCase() + placeName.slice(1),
-            routeId
-          });
-          alert("✅ Place added successfully.");
-        }
-        return placeId;
-      }
-
-      function generateShopDocId(placeId, shopName) {
-        return `${normalizeId(placeId)}_${normalizeId(shopName)}`;
-      }
-
-      addShopBtn.addEventListener("click", async () => {
-        try {
-          const routeId = routeSelect.value;
-          const placeName = placeInput.value.trim();
-          const shopNameRaw = shopInput.value.trim();
-
-          if (!routeId) return alert("Please select a route.");
-          if (!placeName) return alert("Please enter a place.");
-          if (!shopNameRaw) return alert("Please enter a shop name.");
-
-          const placeId = await checkAndAddPlace(routeId, placeName);
-          if (!placeId) return; // User cancelled adding place
-
-          const shopName = shopNameRaw.split(" ")
-            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-            .join(" ");
-
-          const docId = generateShopDocId(placeId, shopName);
-
-          const shopData = {
-            name: shopName,
-            routeId,
-            placeId,
-            contactNo: contactInput.value ? `+91${contactInput.value}` : "",
-            email: emailInput.value,
-            coordinates: locationInput.value
-              ? {
-                  lat: parseFloat(locationInput.value.split(",")[0]),
-                  lng: parseFloat(locationInput.value.split(",")[1])
-                }
-              : null,
-            locationLink: locationLinkInput.value
-          };
-
-          const shopRef = db.collection("shops").doc(docId);
-          const existingShop = await shopRef.get();
-
-          if (existingShop.exists) {
-            if (!confirm("Shop already exists. Update details?")) return;
-            await shopRef.update(shopData);
-            alert("✅ Shop updated successfully.");
-          } else {
-            await shopRef.set(shopData);
-            alert("✅ Shop added successfully.");
-          }
-
-          fetchShopsForSelectedPlace();
-        } catch (err) {
-          console.error("Error adding/updating shop:", err);
-        }
-      });
-
-      routeSelect.addEventListener("change", fetchPlacesForSelectedRoute);
-      placeInput.addEventListener("input", fetchShopsForSelectedPlace);
-
-      // Initial load
-      await fetchRoutes();
+    snap.forEach(doc => {
+      const data = doc.data();
+      const opt = document.createElement("option");
+      opt.value = data.name;          // Human readable name
+      opt.dataset.id = doc.id;        // Lowercase placeId
+      placesList.appendChild(opt);
     });
-  </script>
+  }
+
+  async function fetchShopsForSelectedPlace() {
+    shopsList.innerHTML = "";
+    const selectedPlaceOption = [...placesList.options].find(
+      opt => opt.value.toLowerCase() === placeInput.value.trim().toLowerCase()
+    );
+    if (!routeSelect.value || !selectedPlaceOption) return;
+
+    const placeId = selectedPlaceOption.dataset.id;
+
+    const snap = await db.collection("shops")
+      .where("routeId", "==", routeSelect.value)
+      .where("placeId", "==", placeId)
+      .get();
+
+    snap.forEach(doc => {
+      const data = doc.data();
+      const opt = document.createElement("option");
+      opt.value = data.name;     // show shop name
+      opt.dataset.id = doc.id;   // lowercased shopId
+      shopsList.appendChild(opt);
+    });
+  }
+
+  // -------------------- Add Place if Missing --------------------
+
+  async function checkAndAddPlace(routeId, placeName) {
+    const placeId = generatePlaceId(routeId, placeName);
+    const placeRef = db.collection("places").doc(placeId);
+    const placeDoc = await placeRef.get();
+
+    if (!placeDoc.exists) {
+      const confirmAdd = confirm(`Place "${placeName}" does not exist under this route. Add it?`);
+      if (!confirmAdd) return null;
+
+      await placeRef.set({
+        name: placeName.charAt(0).toUpperCase() + placeName.slice(1),
+        routeId
+      });
+      alert("✅ Place added successfully.");
+    }
+    return placeId;
+  }
+
+  // -------------------- Add / Update Shop --------------------
+
+  addShopBtn.addEventListener("click", async () => {
+    try {
+      const routeId = routeSelect.value;
+      const placeName = placeInput.value.trim();
+      const shopNameRaw = shopInput.value.trim();
+
+      if (!routeId) return alert("Please select a route.");
+      if (!placeName) return alert("Please enter a place.");
+      if (!shopNameRaw) return alert("Please enter a shop name.");
+
+      const placeId = await checkAndAddPlace(routeId, placeName);
+      if (!placeId) return;
+
+      const shopName = shopNameRaw
+        .split(" ")
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+        .join(" ");
+
+      const shopDocId = generateShopDocId(routeId, placeName, shopName);
+
+      const shopData = {
+        name: shopName,
+        routeId,
+        placeId, // ✅ always lowercased routeId_placeName
+        contactNo: contactInput.value ? `+91${contactInput.value}` : "",
+        email: emailInput.value,
+        coordinates: locationInput.value
+          ? {
+              lat: parseFloat(locationInput.value.split(",")[0]),
+              lng: parseFloat(locationInput.value.split(",")[1])
+            }
+          : null,
+        locationLink: locationLinkInput.value
+      };
+
+      const shopRef = db.collection("shops").doc(shopDocId);
+      const existingShop = await shopRef.get();
+
+      if (existingShop.exists) {
+        if (!confirm("Shop already exists. Update details?")) return;
+        await shopRef.update(shopData);
+        alert("✅ Shop updated successfully.");
+      } else {
+        await shopRef.set(shopData);
+        alert("✅ Shop added successfully.");
+      }
+
+      fetchShopsForSelectedPlace();
+    } catch (err) {
+      console.error("Error adding/updating shop:", err);
+    }
+  });
+
+  // -------------------- Event Listeners --------------------
+  routeSelect.addEventListener("change", fetchPlacesForSelectedRoute);
+  placeInput.addEventListener("input", fetchShopsForSelectedPlace);
+
+  // -------------------- Initial Load --------------------
+  await fetchRoutes();
+});
+</script>
 </body>
 </html>
