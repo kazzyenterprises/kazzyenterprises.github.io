@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    section.order-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    section.order-form label,
+    section.order-form select,
+    section.order-form input {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .row-with-button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .row-with-button button {
+      flex: 1;
+      padding: 8px;
+      font-size: 1rem;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .row-with-button button:hover { background-color: #5a6268; }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .contact-row label { display: flex; align-items: center; gap: 8px; }
+    .contact-prefix { font-weight: bold; margin-right: 5px; white-space: nowrap; }
+    #contact-no { width: 100px; }
+    button.full-width-btn {
+      flex: 1;
+      padding: 12px;
+      font-size: 1.2rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button.full-width-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.full-width-btn:hover:not(:disabled) { background-color: #0056b3; }
+  </style>
+</head>
+<body>
+  <section class="order-form">
+    <h1>Manage Your Shop Details</h1>
+
+    <label>Route:
+      <select id="route-select"></select>
+    </label>
+
+    <div class="row-with-button">
+      <label style="flex: 1;">Place:
+        <input list="places-list" id="place-input" placeholder="Select or add place" />
+        <datalist id="places-list"></datalist>
+      </label>
+    </div>
+
+    <div class="shop-details">
+      <div class="row-with-button">
+        <label style="flex: 0 0 60%;">Shop Name:
+          <input list="shops-list" id="shop-name" placeholder="Select or add shop" />
+          <datalist id="shops-list"></datalist>
+        </label>
+        <button id="shop-image-btn" type="button">Upload Image</button>
+      </div>
+
+      <div class="contact-row">
+        <label>Contact No:
+          <span class="contact-prefix">+91</span>
+          <input type="text" id="contact-no" maxlength="10">
+        </label>
+      </div>
+
+      <label>Email: <input type="email" id="email"></label>
+
+      <label>Location: 
+        <input type="text" id="location" readonly placeholder="Fetching GPS...">
+      </label>
+
+      <label>Location Link:
+        <input type="url" id="location-link" placeholder="Paste Google Maps link">
+      </label>
+
+      <button id="add-shop-btn" type="button" class="full-width-btn">
+        ➕ Add / Update Shop Details
+      </button>
+    </div>
+
+  </section>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // ✅ Initialize Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
+        authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
+        projectId: "kazzyenterprizes-c8ef7",
+        storageBucket: "kazzyenterprizes-c8ef7.firebasestorage.app",
+        messagingSenderId: "673988986305",
+        appId: "1:673988986305:web:efbdc6283a30483f1a1b40",
+        measurementId: "G-Z2W56NEGD6"
+      };
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      const routeSelect = document.getElementById("route-select");
+      const placeInput = document.getElementById("place-input");
+      const placesList = document.getElementById("places-list");
+      const shopInput = document.getElementById("shop-name");
+      const shopsList = document.getElementById("shops-list");
+      const addShopBtn = document.getElementById("add-shop-btn");
+      const contactInput = document.getElementById("contact-no");
+      const emailInput = document.getElementById("email");
+      const locationInput = document.getElementById("location");
+      const locationLinkInput = document.getElementById("location-link");
+
+      // ✅ Force contact number to digits only
+      contactInput.addEventListener("input", () => {
+        contactInput.value = contactInput.value.replace(/\D/g, "").slice(0, 10);
+      });
+
+      // ✅ Auto-set GPS coordinates
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            locationInput.value = `${pos.coords.latitude.toFixed(6)},${pos.coords.longitude.toFixed(6)}`;
+          },
+          err => console.warn("GPS not available:", err)
+        );
+      }
+
+      function normalizeId(str) {
+        return String(str || "").trim().toLowerCase().replace(/\s+/g, "_");
+      }
+
+      async function fetchRoutes() {
+        try {
+          const snap = await db.collection("routes").get();
+          snap.forEach(doc => {
+            const opt = document.createElement("option");
+            opt.value = doc.id;
+            opt.textContent = doc.data().name || doc.id;
+            routeSelect.appendChild(opt);
+          });
+        } catch (err) {
+          console.error("Error fetching routes:", err);
+        }
+      }
+
+      async function fetchPlacesForSelectedRoute() {
+        placesList.innerHTML = "";
+        if (!routeSelect.value) return;
+        const snap = await db.collection("places")
+          .where("routeId", "==", routeSelect.value)
+          .get();
+        snap.forEach(doc => {
+          const opt = document.createElement("option");
+          opt.value = doc.data().name;
+          placesList.appendChild(opt);
+        });
+      }
+
+      async function fetchShopsForSelectedPlace() {
+        shopsList.innerHTML = "";
+        const placeName = placeInput.value.trim().toLowerCase();
+        if (!routeSelect.value || !placeName) return;
+        const snap = await db.collection("shops")
+          .where("routeId", "==", routeSelect.value)
+          .where("placeId", "==", placeName)
+          .get();
+        snap.forEach(doc => {
+          const opt = document.createElement("option");
+          opt.value = doc.data().name;
+          shopsList.appendChild(opt);
+        });
+      }
+
+      async function checkAndAddPlace(routeId, placeName) {
+        const placeId = normalizeId(placeName);
+        const placeRef = db.collection("places").doc(placeId);
+        const placeDoc = await placeRef.get();
+
+        if (!placeDoc.exists) {
+          const confirmAdd = confirm(`Place "${placeName}" does not exist under this route. Add it?`);
+          if (!confirmAdd) return null;
+          await placeRef.set({
+            name: placeName.charAt(0).toUpperCase() + placeName.slice(1),
+            routeId
+          });
+          alert("✅ Place added successfully.");
+        }
+        return placeId;
+      }
+
+      function generateShopDocId(placeId, shopName) {
+        return `${normalizeId(placeId)}_${normalizeId(shopName)}`;
+      }
+
+      addShopBtn.addEventListener("click", async () => {
+        try {
+          const routeId = routeSelect.value;
+          const placeName = placeInput.value.trim();
+          const shopNameRaw = shopInput.value.trim();
+
+          if (!routeId) return alert("Please select a route.");
+          if (!placeName) return alert("Please enter a place.");
+          if (!shopNameRaw) return alert("Please enter a shop name.");
+
+          const placeId = await checkAndAddPlace(routeId, placeName);
+          if (!placeId) return; // User cancelled adding place
+
+          const shopName = shopNameRaw.split(" ")
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+            .join(" ");
+
+          const docId = generateShopDocId(placeId, shopName);
+
+          const shopData = {
+            name: shopName,
+            routeId,
+            placeId,
+            contactNo: contactInput.value ? `+91${contactInput.value}` : "",
+            email: emailInput.value,
+            coordinates: locationInput.value
+              ? {
+                  lat: parseFloat(locationInput.value.split(",")[0]),
+                  lng: parseFloat(locationInput.value.split(",")[1])
+                }
+              : null,
+            locationLink: locationLinkInput.value
+          };
+
+          const shopRef = db.collection("shops").doc(docId);
+          const existingShop = await shopRef.get();
+
+          if (existingShop.exists) {
+            if (!confirm("Shop already exists. Update details?")) return;
+            await shopRef.update(shopData);
+            alert("✅ Shop updated successfully.");
+          } else {
+            await shopRef.set(shopData);
+            alert("✅ Shop added successfully.");
+          }
+
+          fetchShopsForSelectedPlace();
+        } catch (err) {
+          console.error("Error adding/updating shop:", err);
+        }
+      });
+
+      routeSelect.addEventListener("change", fetchPlacesForSelectedRoute);
+      placeInput.addEventListener("input", fetchShopsForSelectedPlace);
+
+      // Initial load
+      await fetchRoutes();
+    });
+  </script>
+</body>
+</html>
