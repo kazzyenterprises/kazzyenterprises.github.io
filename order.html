@@ -107,16 +107,14 @@
 
     <div class="row-with-button">
       <label style="flex: 1;">Select Place:
-        <input list="places-list" id="place" placeholder="Select or add place" />
-        <datalist id="places-list"></datalist>
+        <select id="place"></select>
       </label>
     </div>
 
     <div class="shop-details">
       <div class="row-with-button">
         <label style="flex: 0 0 60%;">Select Shop Name:
-          <input list="shops-list" id="shop-name" placeholder="Select or add shop" />
-          <datalist id="shops-list"></datalist>
+          <select id="shop-name"></select>
         </label>
       </div>
     </div>
@@ -164,8 +162,7 @@
     <label>Category: <input type="text" id="new-category"></label>
     <label>Product Name: <input type="text" id="new-product"></label>
     <button id="add-product">Add Product</button>
-
- <script>
+<script>
   const firebaseConfig = {
     apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
     authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
@@ -182,7 +179,7 @@
   const USER_ID = "demo-user-1";
 
   let productCache = [];
-  let placesCache = [];
+  let placesCache = []; // { id: doc.id, name, ... }
   let draftOrderState = {
     routeId: "",
     placeId: "",
@@ -193,32 +190,29 @@
     rows: []
   };
 
-  // Elements
+  // Elements (note: 'place' and 'shop-name' are <select> elements in this page)
   const orderDateInput = document.getElementById("order-date");
   const orderTimeInput = document.getElementById("order-time");
   const deliveryDateInput = document.getElementById("delivery-date");
   const routeSelect = document.getElementById("route");
-  const placeInput = document.getElementById("place");
-  const placesList = document.getElementById("places-list");
-  const shopSelect = document.getElementById("shop-name");
-  const shopsList = document.getElementById("shops-list");
+  const placeSelect = document.getElementById("place");        // select for places
+  const shopSelect = document.getElementById("shop-name");     // select for shops
   const orderIdDisplay = document.getElementById("order-id-display");
   const orderTbody = document.getElementById("order-tbody");
   const addProductRowBtn = document.getElementById("add-product-row");
   const placeOrderBtn = document.getElementById("place-order");
   const grandTotalCell = document.getElementById("grand-total");
 
+  // Init
   window.addEventListener("DOMContentLoaded", async () => {
-    // Set default dates
+    // set order date/time defaults
     const now = new Date();
     orderDateInput.value = now.toISOString().split("T")[0];
-    orderTimeInput.value = now.toTimeString().slice(0, 5);
-
-    const tomorrow = new Date(now);
-    tomorrow.setDate(tomorrow.getDate() + 1);
+    orderTimeInput.value = now.toTimeString().slice(0,5);
+    const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate() + 1);
     deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
 
-    // Fetch products
+    // load products (for category/item selects)
     try {
       const productsSnap = await db.collection("products").get();
       productCache = productsSnap.docs.map(d => d.data());
@@ -226,29 +220,86 @@
       console.error("Error fetching products:", err);
     }
 
-    // Fetch routes
+    // load routes
     try {
       const routesSnap = await db.collection("routes").get();
       routesSnap.forEach(doc => {
         const opt = document.createElement("option");
-        opt.value = doc.id.toLowerCase(); // normalize routeId
+        opt.value = doc.id;           // use doc.id (do NOT lowercase here)
         opt.textContent = doc.data().name || doc.id;
         routeSelect.appendChild(opt);
       });
+      // pick a default route if none selected
+      if (!routeSelect.value && routeSelect.options.length) {
+        routeSelect.value = routeSelect.options[0].value;
+      }
     } catch (err) {
       console.error("Error fetching routes:", err);
     }
 
+    // load places for current route
     await fetchPlacesForSelectedRoute();
-    routeSelect.addEventListener("change", fetchPlacesForSelectedRoute);
-    placeInput.addEventListener("input", fetchShopsForSelectedPlace);
 
-    // Load draft if exists
+    // events
+    routeSelect.addEventListener("change", async () => {
+      await fetchPlacesForSelectedRoute();
+    });
+    placeSelect.addEventListener("change", fetchShopsForSelectedPlace);
+    shopSelect.addEventListener("change", () => {
+      // when shop changes we could set draftOrderState.shopId/shopName if needed
+      // but we persist shop selection only when user adds rows / saves draft
+    });
+
+    // Load draft if exists and restore in proper order:
     try {
       const draftDoc = await db.collection("draftOrders").doc(USER_ID).get();
       if (draftDoc.exists) {
+        // get the draft data first (we'll restore inputs after populating selects)
         draftOrderState = draftDoc.data();
-        restoreDraftToForm();
+
+        // If draft has a routeId and it's different than current selection, set it:
+        if (draftOrderState.routeId) {
+          routeSelect.value = draftOrderState.routeId;
+        }
+
+        // fetch places for this (possibly new) route and set place
+        await fetchPlacesForSelectedRoute();
+
+        // set place (prefer placeId if present)
+        if (draftOrderState.placeId) {
+          // only set if that option exists
+          const hasOpt = [...placeSelect.options].some(o => o.value === draftOrderState.placeId);
+          if (hasOpt) {
+            placeSelect.value = draftOrderState.placeId;
+          } else {
+            // fallback: try to find by display name
+            const found = placesCache.find(p => p.name === draftOrderState.placeName);
+            if (found) placeSelect.value = found.id;
+          }
+        } else if (draftOrderState.placeName) {
+          const found = placesCache.find(p => p.name === draftOrderState.placeName);
+          if (found) placeSelect.value = found.id;
+        }
+
+        // fetch shops after place is set
+        await fetchShopsForSelectedPlace();
+
+        // set shop (prefer shopId if present)
+        if (draftOrderState.shopId) {
+          const hasShopOpt = [...shopSelect.options].some(o => o.value === draftOrderState.shopId);
+          if (hasShopOpt) {
+            shopSelect.value = draftOrderState.shopId;
+          } else {
+            // fallback by name
+            const shopByName = [...shopSelect.options].find(o => o.textContent === draftOrderState.shopName);
+            if (shopByName) shopSelect.value = shopByName.value;
+          }
+        } else if (draftOrderState.shopName) {
+          const shopByName = [...shopSelect.options].find(o => o.textContent === draftOrderState.shopName);
+          if (shopByName) shopSelect.value = shopByName.value;
+        }
+
+        // finally restore table rows
         restoreDraftToTable();
       }
     } catch (err) {
@@ -258,10 +309,13 @@
     await generateOrderId();
   });
 
+  // ----------------- Places & Shops -----------------
   async function fetchPlacesForSelectedRoute() {
     try {
-      placesList.innerHTML = "";
+      // clear
+      placeSelect.innerHTML = "";
       placesCache = [];
+
       const routeId = routeSelect.value;
       if (!routeId) return;
 
@@ -271,11 +325,22 @@
 
       snap.forEach(doc => {
         const data = doc.data();
-        placesCache.push({ id: doc.id, ...data });
+        placesCache.push({ id: doc.id, ...data });   // keep doc.id and data.name
         const opt = document.createElement("option");
-        opt.value = data.name;
-        placesList.appendChild(opt);
+        opt.value = doc.id;            // <-- doc.id (eg. 'kottayam_pallom')
+        opt.textContent = data.name;   // human-friendly (eg. 'Pallom')
+        placeSelect.appendChild(opt);
       });
+
+      // if places found, pick first by default (unless draft had specific value, calling code may override)
+      if (placesCache.length > 0 && !placeSelect.value) {
+        placeSelect.value = placesCache[0].id;
+      }
+
+      // auto-fetch shops for selected place (if any)
+      if (placeSelect.value) {
+        await fetchShopsForSelectedPlace();
+      }
     } catch (err) {
       console.error("Error fetching places:", err);
     }
@@ -283,82 +348,95 @@
 
   async function fetchShopsForSelectedPlace() {
     try {
-      shopSelect.value = "";
-      shopsList.innerHTML = "";
+      shopSelect.innerHTML = "";
 
       const routeId = routeSelect.value;
-      const placeNameRaw = placeInput.value.trim();
-      if (!routeId || !placeNameRaw) return;
+      const placeId = placeSelect.value; // now this is doc.id (place doc id)
 
-      const placeName = placeNameRaw.toLowerCase();
+      if (!routeId || !placeId) {
+        // show placeholder option
+        const opt = document.createElement("option");
+        opt.value = "";
+        opt.textContent = "Select route & place";
+        shopSelect.appendChild(opt);
+        return;
+      }
+
+      // debug
+      console.debug("Fetching shops for", { routeId, placeId });
 
       const snap = await db.collection("shops")
         .where("routeId", "==", routeId)
-        .where("placeId", "==", placeName)
+        .where("placeId", "==", placeId)
         .get();
 
       if (snap.empty) {
         const opt = document.createElement("option");
-        opt.value = "No shops found";
-        shopsList.appendChild(opt);
+        opt.value = "";
+        opt.textContent = "No shops found";
+        shopSelect.appendChild(opt);
+        console.debug("No shops found for", { routeId, placeId });
         return;
       }
 
       snap.forEach(doc => {
         const data = doc.data();
         const opt = document.createElement("option");
-        opt.value = data.name;
-        opt.dataset.id = doc.id;
-        shopsList.appendChild(opt);
+        opt.value = doc.id;        // <-- shop doc id (eg. 'kottayam_pallom_nice_bakery')
+        opt.textContent = data.name; // friendly name
+        shopSelect.appendChild(opt);
       });
+
+      console.debug(`Found ${shopSelect.options.length} shops for placeId=${placeId}`);
     } catch (err) {
       console.error("Error fetching shops:", err);
     }
   }
 
-  function restoreDraftToForm() {
-    routeSelect.value = draftOrderState.routeId || "";
-    placeInput.value = draftOrderState.placeName || "";
-    shopSelect.value = draftOrderState.shopName || "";
-    deliveryDateInput.value = draftOrderState.deliveryDate || deliveryDateInput.value;
-  }
-
+  // ----------------- Draft Save / Restore -----------------
   function restoreDraftToTable() {
     orderTbody.innerHTML = "";
     if (!draftOrderState.rows?.length) return;
     draftOrderState.rows.forEach(row => createRow(row));
     updateGrandTotal();
+    if (draftOrderState.rows.length) placeOrderBtn.style.display = "block";
   }
 
   async function saveDraftToFirestore() {
+    // clean rows (no empty rows)
     const cleanRows = draftOrderState.rows.filter(r =>
       r.productCategory && r.productName && r.orderQuantity > 0
     );
 
-    const placeNameRaw = placeInput.value.trim();
-    const placeId = placeNameRaw.toLowerCase();
-    const selectedShopOption = [...shopsList.options].find(
-      opt => opt.value === shopSelect.value
-    );
-    const shopId = selectedShopOption?.dataset.id || "";
+    const placeId = placeSelect.value || "";
+    const placeName = placeSelect.options[placeSelect.selectedIndex]?.textContent || "";
+    const shopId = shopSelect.value || "";
+    const shopName = shopSelect.options[shopSelect.selectedIndex]?.textContent || "";
 
     const draftData = {
-      routeId: routeSelect.value.trim().toLowerCase(),
+      routeId: routeSelect.value || "",
       placeId,
-      placeName: placeNameRaw,
+      placeName,
       shopId,
-      shopName: shopSelect.value,
+      shopName,
       deliveryDate: deliveryDateInput.value,
       rows: cleanRows,
       lastUpdated: new Date().toISOString()
     };
 
+    // only write if changed (reduces writes)
     if (JSON.stringify(draftData) !== JSON.stringify(draftOrderState)) {
       draftOrderState = draftData;
-      await db.collection("draftOrders").doc(USER_ID).set(draftData);
+      try {
+        await db.collection("draftOrders").doc(USER_ID).set(draftData);
+        console.debug("Saved draftOrder", draftData);
+      } catch (err) {
+        console.error("Error saving draft:", err);
+      }
     }
   }
 
+  // ----------------- Products / Rows -----------------
   function getProduct(category, itemName) {
     return productCache.find(p => p.category === category && p.name === itemName);
   }
@@ -369,6 +447,7 @@
 
     const categories = [...new Set(productCache.map(p => p.category))];
 
+    // category select
     const categorySelect = document.createElement("select");
     categories.forEach(cat => {
       const opt = document.createElement("option");
@@ -378,10 +457,12 @@
     });
     categorySelect.value = rowData.productCategory || categories[0] || "";
 
+    // item select
     const itemSelect = document.createElement("select");
     populateItems(categorySelect.value, itemSelect);
     itemSelect.value = rowData.productName || "";
 
+    // qty, price, mrp
     const countInput = document.createElement("input");
     countInput.type = "number";
     countInput.className = "count-input";
@@ -393,14 +474,15 @@
     marginInput.type = "number";
     marginInput.className = "margin-input";
     marginInput.step = "0.01";
-    marginInput.value = rowData.sellingPrice || "";
+    marginInput.value = rowData.sellingPrice ?? "";
 
     const mrpInput = document.createElement("input");
     mrpInput.type = "number";
     mrpInput.className = "mrp-input";
     mrpInput.step = "0.01";
-    mrpInput.value = rowData.mrp || "";
+    mrpInput.value = rowData.mrp ?? "";
 
+    // listeners
     categorySelect.addEventListener("change", () => {
       populateItems(categorySelect.value, itemSelect);
       itemSelect.value = "";
@@ -422,6 +504,7 @@
     marginInput.addEventListener("input", updateDraftState);
     mrpInput.addEventListener("input", updateDraftState);
 
+    // delete
     const deleteTd = document.createElement("td");
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
@@ -434,6 +517,7 @@
     });
     deleteTd.appendChild(deleteBtn);
 
+    // append cells
     tr.appendChild(createTd(categorySelect, "category-col"));
     tr.appendChild(createTd(itemSelect, "item-col"));
     tr.appendChild(createTd(countInput, "count-col"));
@@ -491,10 +575,11 @@
 
   function updateGrandTotal() {
     let total = 0;
-    draftOrderState.rows.forEach(r => total += r.lineTotal);
+    draftOrderState.rows.forEach(r => total += (r.lineTotal || 0));
     grandTotalCell.textContent = "Total: " + total.toFixed(2);
   }
 
+  // Add row button (prevents multiple blank rows)
   addProductRowBtn.addEventListener("click", async () => {
     const lastTr = orderTbody.lastElementChild;
     if (lastTr) {
@@ -512,30 +597,28 @@
     placeOrderBtn.style.display = "block";
   });
 
+  // Place order
   placeOrderBtn.addEventListener("click", async () => {
     const orderId = orderIdDisplay.dataset.orderId;
     if (!orderId) return alert("Missing Order ID. Try again.");
+    if (!draftOrderState.rows.length) return alert("No items to place order.");
 
-    if (!draftOrderState.rows.length) {
-      return alert("No items to place order.");
-    }
+    const selectedPlaceName = placeSelect.options[placeSelect.selectedIndex]?.textContent || "";
+    const selectedShopName = shopSelect.options[shopSelect.selectedIndex]?.textContent || "";
 
     await db.collection("orders").doc(orderId).set({
-      orderId: orderId, // ✅ stored exactly as displayed (SEP28-0001)
+      orderId: orderId, // SEP28-0001 format
       userId: USER_ID,
       orderDate: orderDateInput.value,
       orderTime: orderTimeInput.value,
       deliveryDate: deliveryDateInput.value,
       routeId: routeSelect.value,
-      placeId: placeInput.value.toLowerCase(),
-      placeName: draftOrderState.placeName,
-      shopId: draftOrderState.shopId,
-      shopName: shopSelect.value,
-      items: draftOrderState.rows.map(r => ({
-        ...r,
-        lineTotal: r.orderQuantity * r.sellingPrice
-      })),
-      total: draftOrderState.rows.reduce((sum, r) => sum + r.lineTotal, 0),
+      placeId: placeSelect.value,
+      placeName: selectedPlaceName,
+      shopId: shopSelect.value,
+      shopName: selectedShopName,
+      items: draftOrderState.rows.map(r => ({ ...r, lineTotal: r.orderQuantity * r.sellingPrice })),
+      total: draftOrderState.rows.reduce((sum, r) => sum + (r.orderQuantity * r.sellingPrice), 0),
       status: "pending",
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -547,6 +630,7 @@
     location.reload();
   });
 
+  // Order id generator (prefix-####)
   async function generateOrderId() {
     const now = new Date();
     const month = now.toLocaleString('en-US', { month: 'short' }).toUpperCase();
@@ -555,19 +639,18 @@
 
     const snap = await db.collection("orders")
       .orderBy("createdAt", "desc")
-      .limit(1)
+      .limit(50)
       .get();
 
-    let count = 1;
-    if (!snap.empty) {
-      const lastId = snap.docs[0].id;
-      if (lastId.startsWith(prefix)) {
-        const num = parseInt(lastId.split("-")[1]) || 0;
-        count = num + 1;
+    let count = 0;
+    snap.forEach(doc => {
+      if (doc.id.startsWith(prefix)) {
+        const num = parseInt(doc.id.split("-")[1]) || 0;
+        count = Math.max(count, num);
       }
-    }
+    });
 
-    const orderId = `${prefix}-${String(count).padStart(4, "0")}`;
+    const orderId = `${prefix}-${String(count + 1).padStart(4, "0")}`;
     orderIdDisplay.dataset.orderId = orderId;
     orderIdDisplay.textContent = `Order ID: ${orderId}`;
   }
