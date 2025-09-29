@@ -165,7 +165,7 @@
     <label>Product Name: <input type="text" id="new-product"></label>
     <button id="add-product">Add Product</button>
 
-  <script>
+ <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
     authDomain: "kazzyenterprizes-c8ef7.firebaseapp.com",
@@ -213,6 +213,7 @@
     const now = new Date();
     orderDateInput.value = now.toISOString().split("T")[0];
     orderTimeInput.value = now.toTimeString().slice(0, 5);
+
     const tomorrow = new Date(now);
     tomorrow.setDate(tomorrow.getDate() + 1);
     deliveryDateInput.value = tomorrow.toISOString().split("T")[0];
@@ -230,7 +231,7 @@
       const routesSnap = await db.collection("routes").get();
       routesSnap.forEach(doc => {
         const opt = document.createElement("option");
-        opt.value = doc.id; // lowercase docId for routeId
+        opt.value = doc.id.toLowerCase(); // normalize routeId
         opt.textContent = doc.data().name || doc.id;
         routeSelect.appendChild(opt);
       });
@@ -254,14 +255,13 @@
       console.error("Error loading draft order:", err);
     }
 
-    generateOrderId();
+    await generateOrderId();
   });
 
   async function fetchPlacesForSelectedRoute() {
     try {
       placesList.innerHTML = "";
       placesCache = [];
-
       const routeId = routeSelect.value;
       if (!routeId) return;
 
@@ -276,7 +276,6 @@
         opt.value = data.name;
         placesList.appendChild(opt);
       });
-
     } catch (err) {
       console.error("Error fetching places:", err);
     }
@@ -319,29 +318,15 @@
 
   function restoreDraftToForm() {
     routeSelect.value = draftOrderState.routeId || "";
-
-    // Prefer placeName, fallback to placeId with capitalization
-    if (draftOrderState.placeName) {
-      placeInput.value = draftOrderState.placeName;
-    } else if (draftOrderState.placeId) {
-      placeInput.value =
-        draftOrderState.placeId.charAt(0).toUpperCase() + draftOrderState.placeId.slice(1);
-    } else {
-      placeInput.value = "";
-    }
-
+    placeInput.value = draftOrderState.placeName || "";
     shopSelect.value = draftOrderState.shopName || "";
     deliveryDateInput.value = draftOrderState.deliveryDate || deliveryDateInput.value;
   }
 
   function restoreDraftToTable() {
-    orderTbody.innerHTML = ""; // Clear table first
-    if (!draftOrderState.rows || !draftOrderState.rows.length) return;
-
-    draftOrderState.rows.forEach(row => {
-      createRow(row);
-    });
-
+    orderTbody.innerHTML = "";
+    if (!draftOrderState.rows?.length) return;
+    draftOrderState.rows.forEach(row => createRow(row));
     updateGrandTotal();
   }
 
@@ -352,7 +337,6 @@
 
     const placeNameRaw = placeInput.value.trim();
     const placeId = placeNameRaw.toLowerCase();
-
     const selectedShopOption = [...shopsList.options].find(
       opt => opt.value === shopSelect.value
     );
@@ -361,7 +345,7 @@
     const draftData = {
       routeId: routeSelect.value.trim().toLowerCase(),
       placeId,
-      placeName: placeNameRaw, // ✅ always save original placeName
+      placeName: placeNameRaw,
       shopId,
       shopName: shopSelect.value,
       deliveryDate: deliveryDateInput.value,
@@ -376,9 +360,7 @@
   }
 
   function getProduct(category, itemName) {
-    return productCache.find(
-      p => p.category === category && p.name === itemName
-    );
+    return productCache.find(p => p.category === category && p.name === itemName);
   }
 
   function createRow(rowData = {}) {
@@ -498,7 +480,8 @@
           productName,
           orderQuantity,
           sellingPrice,
-          mrp
+          mrp,
+          lineTotal: orderQuantity * sellingPrice
         });
       }
     });
@@ -508,9 +491,7 @@
 
   function updateGrandTotal() {
     let total = 0;
-    draftOrderState.rows.forEach(r => {
-      total += r.orderQuantity * r.sellingPrice;
-    });
+    draftOrderState.rows.forEach(r => total += r.lineTotal);
     grandTotalCell.textContent = "Total: " + total.toFixed(2);
   }
 
@@ -540,17 +521,24 @@
     }
 
     await db.collection("orders").doc(orderId).set({
+      orderId: orderId, // ✅ stored exactly as displayed (SEP28-0001)
       userId: USER_ID,
       orderDate: orderDateInput.value,
       orderTime: orderTimeInput.value,
       deliveryDate: deliveryDateInput.value,
       routeId: routeSelect.value,
       placeId: placeInput.value.toLowerCase(),
+      placeName: draftOrderState.placeName,
       shopId: draftOrderState.shopId,
       shopName: shopSelect.value,
-      items: draftOrderState.rows,
-      total: draftOrderState.rows.reduce((sum, r) => sum + (r.orderQuantity * r.sellingPrice), 0),
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      items: draftOrderState.rows.map(r => ({
+        ...r,
+        lineTotal: r.orderQuantity * r.sellingPrice
+      })),
+      total: draftOrderState.rows.reduce((sum, r) => sum + r.lineTotal, 0),
+      status: "pending",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
 
     await db.collection("draftOrders").doc(USER_ID).delete();
@@ -574,12 +562,12 @@
     if (!snap.empty) {
       const lastId = snap.docs[0].id;
       if (lastId.startsWith(prefix)) {
-        const num = parseInt(lastId.split("/")[1]) || 0;
+        const num = parseInt(lastId.split("-")[1]) || 0;
         count = num + 1;
       }
     }
 
-    const orderId = `${prefix}/${String(count).padStart(4, "0")}`;
+    const orderId = `${prefix}-${String(count).padStart(4, "0")}`;
     orderIdDisplay.dataset.orderId = orderId;
     orderIdDisplay.textContent = `Order ID: ${orderId}`;
   }
