@@ -7,29 +7,102 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #000; margin: 20px; color: white; }
-    .container { max-width: 500px; margin: auto; background: #111; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
-    h2 { text-align: center; margin-bottom: 15px; }
-    label { display: block; margin-top: 10px; font-weight: bold; }
+    body { 
+      font-family: "Segoe UI", Arial, sans-serif; 
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); 
+      margin: 20px; 
+      color: white;
+    }
+    .container { 
+      max-width: 500px; 
+      margin: auto; 
+      background: #111; 
+      padding: 20px; 
+      border-radius: 12px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4); 
+    }
+    h2 { 
+      font-size: 1.8rem;
+      color: #00d4ff;
+      text-align: center; 
+      margin-bottom: 20px; 
+    }
+    label {  
+      margin-top: 10px; 
+      font-weight: bold; 
+    }
     input, select {
-      width: 100%; padding: 10px; margin-top: 5px;
-      border-radius: 6px; border: 1px solid #444; background: #222; color: white;
+      width: 100%; 
+      padding: 10px; 
+      margin-top: 6px;
+      border-radius: 8px; 
+      border: 1px solid #666; 
+      background: #111; 
+      color: white;
+      font-size: 1rem;
+      transition: border 0.3s;
     }
     button {
-      margin-top: 15px; padding: 12px;
-      background: #007BFF; color: white;
-      border: none; border-radius: 6px;
-      cursor: pointer; font-size: 16px; width: 100%;
-      display: flex; align-items: center; justify-content: center;
+      margin-top: 15px; 
+      padding: 12px;
+      background: #007BFF; 
+      color: white;
+      border: none; 
+      border-radius: 6px;
+      cursor: pointer; 
+      font-size: 16px; 
+      width: 100%;
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
       gap: 8px;
     }
-    button:disabled { background: #555; cursor: not-allowed; }
-    button:hover:enabled { background: #0056b3; }
-    .success { color: #00e676; margin-top: 12px; font-weight: bold; text-align: center; }
-    .error { color: #ff5252; margin-top: 12px; font-weight: bold; text-align: center; }
-    .variant { display:flex; gap:8px; }
-    .variant input { flex:2; }
-    .variant select { flex:1; }
+    input:focus, select:focus {
+      border-color: #00d4ff;
+      outline: none;
+    }
+    button {
+      display: flex;
+      flex: 1;
+      padding: 14px;
+      font-size: 1.1rem;
+      background: linear-gradient(45deg, #00d4ff, #007bff);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+    button:disabled { 
+      background: #555; 
+      cursor: not-allowed; 
+    }
+    button:hover:enabled {
+      background: linear-gradient(45deg, #00ffcc, #0056b3);
+      transform: translateY(-2px);
+    }
+    .success { 
+      color: #00e676; 
+      margin-top: 12px; 
+      font-weight: bold; 
+      text-align: center; 
+    }
+    .error { 
+      color: #ff5252; 
+      margin-top: 12px; 
+      font-weight: bold; 
+      text-align: center; 
+    }
+    .variant { 
+      display:flex; 
+      gap:8px; 
+    }
+    .variant input { 
+      flex:2; 
+    }
+    .variant select { 
+      flex:1; 
+    }
     .spinner {
       width: 18px; height: 18px; border: 3px solid #fff;
       border-top: 3px solid transparent; border-radius: 50%;
