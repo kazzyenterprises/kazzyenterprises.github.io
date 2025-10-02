@@ -3,204 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>🛍️ Order Page - Kazzy Enterprises</title>
+  <title>Order Page - Kazzy Enterprises</title>
+  <link rel="stylesheet" href="styles.css" />
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
   <style>
-    body {
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      margin: 0;
-      padding: 20px;
-      color: #f1f1f1;
-    }
     section.order-form {
-      background: rgba(0,0,0,0.7);
-      padding: 25px;
-      border-radius: 14px;
-      max-width: 950px;
-      margin: auto;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-    }
-    h1 {
-      font-size: 1.8rem;
-      color: #00d4ff;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    h2 {
-      margin-top: 25px;
-      color: #ffcc00;
-      font-size: 1.3rem;
-    }
-    label {
-      font-weight: 600;
-      margin-top: 12px;
-      display: block;
-      color: #ddd;
-    }
-    input, select {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 900px;
       width: 100%;
-      padding: 10px;
-      margin-top: 6px;
-      border-radius: 8px;
-      border: 1px solid #666;
-      background: #111;
-      color: #fff;
-      font-size: 1rem;
-      transition: border 0.3s;
+      margin: 0 auto;
     }
-    input:focus, select:focus {
-      border-color: #00d4ff;
-      outline: none;
+    section.order-form label,
+    section.order-form select,
+    section.order-form input {
+      display: block;
+      width: 100%;
+      margin-bottom: 10px;
     }
     .row-with-button {
       display: flex;
+      align-items: center;
       gap: 10px;
-      margin-top: 10px;
+      margin-bottom: 10px;
     }
     .row-with-button button {
-      padding: 10px;
-      border-radius: 8px;
-      background: #444;
-      border: none;
-      color: #fff;
+      flex: 1;
+      padding: 8px;
       font-size: 1rem;
+      background-color: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      transition: background 0.3s;
     }
-    .row-with-button button:hover {
-      background: #666;
+    .row-with-button button:hover { background-color: #5a6268; }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
     }
-    a.manage-shop-link {
-      display: inline-block;
-      margin: 12px 0;
-      color: #ffcc00;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    a.manage-shop-link:hover {
-      text-decoration: underline;
-    }
-    #order-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-      background: #111;
-      border-radius: 10px;
-      overflow: hidden;
-      table-layout: fixed;
-    }
+    .contact-row label { display: flex; align-items: center; gap: 8px; }
+    .contact-prefix { font-weight: bold; margin-right: 5px; white-space: nowrap; }
+    #contact-no { width: 100px; }
+    #order-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
     #order-table th, #order-table td {
-      border: 1px solid #333;
-      padding: 10px;
-      text-align: center;
-      font-size: 0.95rem;
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
       vertical-align: middle;
-      word-wrap:break-word;
     }
-    #order-table th {
-      background: #00d4ff;
-      color: #000;
-    }
-    #order-table input, 
-    #order-table select {
-    width: 95%; /* stay inside the cell */
-    max-width: 100%;
-    box-sizing: border-box;
-    padding: 6px;
-    font-size: 0.9rem;
-    border-radius: 6px;
-    border: 1px solid #666;
-    background: #1a1a1a;
-    color: #fff;
+    .category-col { width: 30%; }
+    .item-col { width: 30%; }
+    .count-col { width: 10%; text-align: center; }
+    .margin-col { width: 15%; }
+    .mrp-col { width: 15%; }
+    #order-table th:last-child, #order-table td:last-child {
+      width: 1px;
+      text-align: center;
     }
     .delete-btn {
       background: none;
       border: none;
-      color: #ff4d4d;
-      font-size: 1.4rem;
+      color: red;
+      font-size: 1.2rem;
       cursor: pointer;
-    }
-    .delete-btn:hover {
-      transform: scale(1.2);
     }
     tfoot td {
       font-weight: bold;
       text-align: right;
-      padding: 12px;
-      background: #222;
-      color: #00ff88;
-      font-size: 1.1rem;
+      padding-top: 12px;
     }
-    .button-row {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-    }
+    .button-row { display: flex; gap: 10px; }
     button.full-width-btn {
       flex: 1;
-      padding: 14px;
-      font-size: 1.1rem;
-      background: linear-gradient(45deg, #00d4ff, #007bff);
+      padding: 12px;
+      font-size: 1.2rem;
+      background-color: #007bff;
       color: white;
       border: none;
-      border-radius: 10px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: transform 0.2s, background 0.3s;
+      margin-top: 10px;
     }
-    button.full-width-btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-    button.full-width-btn:hover:not(:disabled) {
-      background: linear-gradient(45deg, #00ffcc, #0056b3);
-      transform: translateY(-2px);
-    }
-    #order-id-display {
-      font-size: 1rem;
-      background: #222;
-      padding: 8px 14px;
-      border-radius: 8px;
-      display: inline-block;
-      margin-bottom: 15px;
-      color: #00ffcc;
-    }
+    button.full-width-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    button.full-width-btn:hover:not(:disabled) { background-color: #0056b3; }
   </style>
 </head>
 <body>
   <section class="order-form">
-    <h1>🛒 Create New Order</h1>
+    <h1>🛒 New Order</h1>
 
     <span id="order-id-display">Order ID: Generating...</span>
 
-    <label>📅 Order Date <input type="date" id="order-date" readonly></label>
-    <label>⏰ Order Time <input type="time" id="order-time" readonly></label>
+    <label>Order Date: <input type="date" id="order-date" readonly></label>
+    <label>Order Time: <input type="time" id="order-time" readonly></label>
 
-    <label>🚚 Select Route
+    <label>Select Route:
       <select id="route"></select>
     </label>
 
-    <label>📍 Select Place
-      <select id="place"></select>
-    </label>
+    <div class="row-with-button">
+      <label style="flex: 1;">Select Place:
+        <select id="place"></select>
+      </label>
+    </div>
 
-    <label>🏪 Select Shop
-      <select id="shop-name"></select>
-    </label>
+    <div class="shop-details">
+      <div class="row-with-button">
+        <label style="flex: 0 0 60%;">Select Shop Name:
+          <select id="shop-name"></select>
+        </label>
+      </div>
+    </div>
 
-    <a href="shop-management.html" target="_blank" class="manage-shop-link">⚙️ Manage Shops & Places</a>
+      <a href="shop-management.html" target="_blank" class="manage-shop-link">
+        🏪 Manage Shops & Places
+      </a>
 
     <div id="order-sections">
       <table id="order-table">
         <thead>
           <tr>
-            <th>📦 Category</th>
-            <th>🛍️ Product</th>
-            <th>🔢 Qty</th>
-            <th>💰 Selling Price</th>
-            <th>🏷️ MRP</th>
-            <th>❌</th>
+            <th class="category-col">Product Category</th>
+            <th class="item-col">Product Name</th>
+            <th class="count-col">Order Qty</th>
+            <th class="margin-col">Selling Price</th>
+            <th class="mrp-col">MRP</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="order-tbody"></tbody>
@@ -213,25 +145,23 @@
     </div>
 
     <div class="button-row">
-      <button id="add-product-row" class="full-width-btn">➕ Add Product</button>
+      <button id="add-product-row" class="full-width-btn">➕ Add Product Row</button>
     </div>
 
-    <label>🚚 Delivery Date
+    <label>Delivery Date:
       <input type="date" id="delivery-date">
     </label>
 
     <button id="place-order" class="full-width-btn" style="display:none;">✅ Submit Order</button>
 
     <div class="row-with-button">
-      <button id="item-image-btn" type="button">📷 Upload Product Image</button>
+      <button id="item-image-btn" type="button">📷 Product Image</button>
     </div>
 
-    <h2>➕ Add New Product to Database</h2>
-    <label>📦 Category <input type="text" id="new-category"></label>
-    <label>🛍️ Product Name <input type="text" id="new-product"></label>
-    <button id="add-product">➕ Save Product</button>
-  </section>
-
+    <h2>Add New Product to DB</h2>
+    <label>Category: <input type="text" id="new-category"></label>
+    <label>Product Name: <input type="text" id="new-product"></label>
+    <button id="add-product">Add Product</button>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCI6ZLswuH7aZKpqt8EwGI6TWecpBQkVgo",
