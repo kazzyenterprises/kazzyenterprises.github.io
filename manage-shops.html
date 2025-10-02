@@ -4,108 +4,173 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop Management</title>
-  <link rel="stylesheet" href="styles.css">
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
   <style>
-    section.order-form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-width: 900px;
-      width: 100%;
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: #0d1117;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00d4ff;
+    }
+
+    .card {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 800px;
       margin: 0 auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     }
-    section.order-form label,
-    section.order-form select,
-    section.order-form input {
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
       display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #ddd;
+    }
+    .form-group label i {
+      margin-right: 6px;
+      color: #00d4ff;
+    }
+
+    .form-group input,
+    .form-group select {
       width: 100%;
-      margin-bottom: 10px;
-    }
-    .row-with-button {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-    .row-with-button button {
-      flex: 1;
-      padding: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #333;
+      background: #1f262e;
+      color: #fff;
       font-size: 1rem;
-      background-color: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      box-sizing: border-box;
     }
-    .row-with-button button:hover { background-color: #5a6268; }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #00d4ff;
+      outline: none;
+    }
+
+    .row {
+      display: flex;
+      gap: 15px;
+    }
+    .row .form-group {
+      flex: 1;
+    }
+
     .contact-row {
       display: flex;
       align-items: center;
-      margin-bottom: 10px;
+      gap: 8px;
     }
-    .contact-row label { display: flex; align-items: center; gap: 8px; }
-    .contact-prefix { font-weight: bold; margin-right: 5px; white-space: nowrap; }
-    #contact-no { width: 100px; }
-    button.full-width-btn {
+    .contact-prefix {
+      font-weight: bold;
+      color: #00d4ff;
+    }
+    .contact-row input {
       flex: 1;
-      padding: 12px;
-      font-size: 1.2rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
     }
-    button.full-width-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    button.full-width-btn:hover:not(:disabled) { background-color: #0056b3; }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      background: #00d4ff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: #000;
+      margin-top: 15px;
+      transition: background 0.3s;
+    }
+    button i {
+      margin-right: 8px;
+    }
+    button:hover {
+      background: #00b8e6;
+    }
+
+    #shop-image-btn {
+      background: #6c757d;
+      color: white;
+      font-size: 0.95rem;
+      padding: 10px 14px;
+      margin-top: 6px;
+      width: 100%;
+    }
+    #shop-image-btn:hover {
+      background: #5a6268;
+    }
+
   </style>
 </head>
 <body>
-  <section class="order-form">
-    <h1>Manage Your Shop Details</h1>
-
-    <label>Route:
+  <h1><i class="fa-solid fa-store"></i> Shop Management</h1>
+  <div class="card">
+    
+    <div class="form-group">
+      <label for="route-select"><i class="fa-solid fa-route"></i> Route</label>
       <select id="route-select"></select>
-    </label>
-
-    <div class="row-with-button">
-      <label style="flex: 1;">Place:
-        <input list="places-list" id="place-input" placeholder="Select or add place" />
-        <datalist id="places-list"></datalist>
-      </label>
     </div>
 
-    <div class="shop-details">
-      <div class="row-with-button">
-        <label style="flex: 0 0 60%;">Shop Name:
-          <input list="shops-list" id="shop-name" placeholder="Select or add shop" />
-          <datalist id="shops-list"></datalist>
-        </label>
-        <button id="shop-image-btn" type="button">Upload Image</button>
-      </div>
+    <div class="form-group">
+      <label for="place-input"><i class="fa-solid fa-location-dot"></i> Place</label>
+      <input list="places-list" id="place-input" placeholder="Select or add place" />
+      <datalist id="places-list"></datalist>
+    </div>
 
+    <div class="row">
+      <div class="form-group" style="flex: 2;">
+        <label for="shop-name"><i class="fa-solid fa-shop"></i> Shop Name</label>
+        <input list="shops-list" id="shop-name" placeholder="Select or add shop" />
+        <datalist id="shops-list"></datalist>
+      </div>
+      <div style="flex: 1; display:flex; align-items:flex-end;">
+        <button id="shop-image-btn" type="button">
+          <i class="fa-solid fa-image"></i> Upload
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label><i class="fa-solid fa-phone"></i> Contact No</label>
       <div class="contact-row">
-        <label>Contact No:
-          <span class="contact-prefix">+91</span>
-          <input type="text" id="contact-no" maxlength="10">
-        </label>
+        <span class="contact-prefix">+91</span>
+        <input type="text" id="contact-no" maxlength="10" placeholder="Enter 10-digit number">
       </div>
-
-      <label>Email: <input type="email" id="email"></label>
-
-      <label>Location: 
-        <input type="text" id="location" readonly placeholder="Fetching GPS...">
-      </label>
-
-      <label>Location Link:
-        <input type="url" id="location-link" placeholder="Paste Google Maps link">
-      </label>
-
-      <button id="add-shop-btn" type="button" class="full-width-btn">
-        ➕ Add / Update Shop Details
-      </button>
     </div>
+
+    <div class="form-group">
+      <label><i class="fa-solid fa-envelope"></i> Email</label>
+      <input type="email" id="email" placeholder="example@email.com">
+    </div>
+
+    <div class="form-group">
+      <label><i class="fa-solid fa-map"></i> Location (GPS auto-fetched)</label>
+      <input type="text" id="location" readonly placeholder="Fetching GPS...">
+    </div>
+
+    <div class="form-group">
+      <label><i class="fa-solid fa-link"></i> Location Link</label>
+      <input type="url" id="location-link" placeholder="Paste Google Maps link">
+    </div>
+
+    <button id="add-shop-btn" type="button">
+      <i class="fa-solid fa-circle-plus"></i> Add / Update Shop
+    </button>
+  </div>
 
   </section>
 
