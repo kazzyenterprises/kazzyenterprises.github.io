@@ -4,46 +4,243 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kazzy Enterprises</title>
-  <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", sans-serif;
+      display: flex;
+      background: #0d1117;
+      color: #f0f0f0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: #161b22;
+      color: #fff;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+      box-shadow: 2px 0 6px rgba(0,0,0,0.4);
+    }
+
+    .sidebar .logo {
+      padding: 20px;
+      font-size: 20px;
+      font-weight: bold;
+      background: #0d1117;
+      text-align: center;
+      border-bottom: 1px solid #2c333a;
+      color: #00d4ff;
+      letter-spacing: 0.5px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar ul li {
+      border-bottom: 1px solid #21262d;
+    }
+
+    .sidebar ul li a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      color: #ddd;
+      text-decoration: none;
+      padding: 14px 20px;
+      transition: all 0.25s;
+      font-size: 15px;
+    }
+
+    .sidebar ul li a:hover {
+      background: #1f6feb;
+      color: #fff;
+    }
+
+    .sidebar ul li a span {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar ul li a i {
+      min-width: 18px;
+    }
+
+    /* Submenu */
+    .submenu {
+      display: none;
+      background: #1c2128;
+    }
+
+    .submenu li a {
+      padding-left: 55px;
+      font-size: 14px;
+      color: #bbb;
+    }
+
+    .submenu li a:hover {
+      background: #238636;
+      color: #fff;
+    }
+
+    .submenu.open {
+      display: block;
+    }
+
+    /* Content */
+    .content {
+      margin-left: 260px;
+      padding: 30px;
+      flex: 1;
+      background: #0d1117;
+    }
+    .content h1 {
+      color: #00d4ff;
+      margin-bottom: 10px;
+    }
+    .content p {
+      color: #ccc;
+      font-size: 15px;
+    }
+
+    /* Mobile Styles */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      top: 15px;
+      left: 15px;
+      background: #161b22;
+      color: white;
+      padding: 10px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 1000;
+      border: 1px solid #2c333a;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .content {
+        margin-left: 0;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <nav>
-    <div class="nav-container">
-      <div class="logo">Kazzy Enterprises</div>
-      <div class="menu-toggle" id="menu-toggle">&#9776;</div>
-      <ul class="nav-links" id="nav-links">
-        <li><a href="#login">Login</a></li>
-        <li><a href="order.html">Order</a></li>
-        <li><a href="shop-management.html">Manage Shops</a></li>
-        <li><a href="product-management.html">Manage Products</a></li>
-        <li><a href="#order">Purchase</a></li>
-        <li><a href="#order">Delivery</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </div>
+  <!-- Toggle button for mobile -->
+  <div class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></div>
+
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="logo"><i class="fa-solid fa-building"></i> Kazzy Enterprises</div>
+    <ul>
+      <!-- Orders -->
+      <li>
+        <a class="menu-item"><span><i class="fa-solid fa-cart-shopping"></i> Orders</span><i class="fa-solid fa-chevron-down"></i></a>
+        <ul class="submenu">
+          <li><a href="orders.html"><i class="fa-regular fa-list-alt"></i> All Orders</a></li>
+          <li><a href="new-order.html"><i class="fa-solid fa-plus"></i> New Order</a></li>
+          <li><a href="edit-order.html"><i class="fa-solid fa-pen-to-square"></i> Edit Order</a></li>
+        </ul>
+      </li>
+
+      <!-- Shops -->
+      <li>
+        <a class="menu-item"><span><i class="fa-solid fa-store"></i> Shops</span><i class="fa-solid fa-chevron-down"></i></a>
+        <ul class="submenu">
+          <li><a href="shops.html"><i class="fa-solid fa-address-book"></i> Shop Directory</a></li>
+          <li><a href="places.html"><i class="fa-solid fa-location-dot"></i> Places</a></li>
+          <li><a href="manage-shops.html"><i class="fa-solid fa-gear"></i> Manage Shops</a></li>
+          <li><a href="shop-images.html"><i class="fa-regular fa-image"></i> Shop Images</a></li>
+        </ul>
+      </li>
+
+      <!-- Products -->
+      <li>
+        <a class="menu-item"><span><i class="fa-solid fa-box"></i> Products</span><i class="fa-solid fa-chevron-down"></i></a>
+        <ul class="submenu">
+          <li><a href="products.html"><i class="fa-solid fa-boxes-stacked"></i> Product Catalog</a></li>
+          <li><a href="manage-products.html"><i class="fa-solid fa-pen-to-square"></i> Manage Products</a></li>
+          <li><a href="inventory.html"><i class="fa-solid fa-warehouse"></i> Inventory</a></li>
+        </ul>
+      </li>
+
+      <!-- Delivery -->
+      <li>
+        <a class="menu-item"><span><i class="fa-solid fa-truck"></i> Delivery</span><i class="fa-solid fa-chevron-down"></i></a>
+        <ul class="submenu">
+          <li><a href="delivery-plan.html"><i class="fa-solid fa-route"></i> Delivery Plan</a></li>
+          <li><a href="delivery-orders.html"><i class="fa-solid fa-box-open"></i> Delivery Orders</a></li>
+        </ul>
+      </li>
+
+      <!-- Payments -->
+      <li>
+        <a class="menu-item"><span><i class="fa-solid fa-credit-card"></i> Payments</span><i class="fa-solid fa-chevron-down"></i></a>
+        <ul class="submenu">
+          <li><a href="payments.html"><i class="fa-solid fa-file-invoice-dollar"></i> Payment Records</a></li>
+          <li><a href="pending-payments.html"><i class="fa-solid fa-clock"></i> Pending Payments</a></li>
+        </ul>
+      </li>
+
+      <!-- Contact + Login -->
+      <li><a href="contact.html"><span><i class="fa-solid fa-envelope"></i> Contact</span></a></li>
+      <li><a href="login.html"><span><i class="fa-solid fa-right-to-bracket"></i> Login</span></a></li>
+    </ul>
   </nav>
 
-  <section id="contact" class="socials">
-    <div id="contact-content"></div>
-  </section>
+  <!-- Content -->
+  <div class="content" display = "flex" padding-top = >
+    <h1>Welcome to Kazzy Enterprises</h1>
+    <p>Select a menu option from the sidebar.</p>
+  </div>
 
   <script>
     const menuToggle = document.getElementById("menu-toggle");
-    const navLinks = document.getElementById("nav-links");
+    const sidebar = document.getElementById("sidebar");
 
     menuToggle.addEventListener("click", () => {
-      navLinks.classList.toggle("active");
+      sidebar.classList.toggle("active");
     });
 
-    fetch('contact.html')
-    .then(response => response.text())
-    .then(data => {
-      document.getElementById('contact-content').innerHTML = data;
-    })
-    .catch(error => console.error('Error loading contact.html:', error));
+    // Accordion submenu toggle
+    document.querySelectorAll(".menu-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const submenu = item.nextElementSibling;
 
+        // Close all submenus first
+        document.querySelectorAll(".submenu").forEach(menu => {
+          if (menu !== submenu) {
+            menu.classList.remove("open");
+          }
+        });
+
+        // Toggle the clicked one
+        submenu.classList.toggle("open");
+      });
+    });
   </script>
 
 </body>
