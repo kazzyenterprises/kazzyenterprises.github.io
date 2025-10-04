@@ -1,0 +1,64 @@
+<section class="order-form">
+    <link rel="stylesheet" href="css/pages/new-order.css"> 
+    
+    <h1>🛒 Create New Order</h1>
+
+    <span id="order-id-display">Order ID: Generating...</span>
+
+    <label>📅 Order Date <input type="date" id="order-date" readonly></label>
+    <label>⏰ Order Time <input type="time" id="order-time" readonly></label>
+
+    <label>🚚 Select Route
+      <select id="route"></select>
+    </label>
+
+    <label>📍 Select Place
+      <select id="place"></select>
+    </label>
+
+    <label>🏪 Select Shop
+      <select id="shop-name"></select>
+    </label>
+
+    <a href="shop-management.html" target="_blank" class="manage-shop-link">⚙️ Manage Shops & Places</a>
+
+    <div id="order-sections">
+      <table id="order-table">
+        <thead>
+          <tr>
+            <th>📦 Category</th>
+            <th>🛍️ Product</th>
+            <th>🔢 Qty</th>
+            <th>💰 Selling Price</th>
+            <th>🏷️ MRP</th>
+            <th>❌</th>
+          </tr>
+        </thead>
+        <tbody id="order-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="6" id="grand-total">Total: 0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="button-row">
+      <button id="add-product-row" class="full-width-btn">➕ Add Product</button>
+    </div>
+
+    <label>🚚 Delivery Date
+      <input type="date" id="delivery-date">
+    </label>
+
+    <button id="place-order" class="full-width-btn" style="display:none;">✅ Submit Order</button>
+
+    <div class="row-with-button">
+      <button id="item-image-btn" type="button">📷 Upload Product Image</button>
+    </div>
+
+    <h2>➕ Add New Product to Database</h2>
+    <label>📦 Category <input type="text" id="new-category"></label>
+    <label>🛍️ Product Name <input type="text" id="new-product"></label>
+    <button id="add-product">➕ Save Product</button>
+</section>
