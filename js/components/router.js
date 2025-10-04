@@ -6,6 +6,8 @@
 import { initializeProductManagement } from '../pages/products-manage.js';
 import { initializeOrderPage } from '../pages/new-order.js'; 
 import { initializeShopManagement } from '../pages/shop-management.js';
+import { initializePlaceManagement } from '../pages/places-manage.js';
+import { initializeShopDirectory } from '../pages/shop-directory.js';
 // import { initializeHome } from '../pages/home.js'; // Uncomment when home.js is ready
 
 const CONTENT_AREA_ID = 'main-content-area'; // Assuming your index.html has an element with this ID
@@ -27,6 +29,17 @@ const ROUTES = {
             // Call initializeHome(app) once home.js is ready
             // if (typeof initializeHome === 'function') initializeHome(app);
         }
+    },
+    'shops/shop-directory': {
+        templatePath: 'pages/shop-directory.html', 
+        title: 'Shop Directory | Kazzy Enterprises',
+        onLoad: initializeShopDirectory // Function imported above
+    },
+
+    'shops/places-manage': {
+        templatePath: 'pages/places-manage.html', 
+        title: 'Manage Places | Kazzy Enterprises',
+        onLoad: initializePlaceManagement // Function imported above
     },
 
     // Route for Shop Management (path: #shop-management)
