@@ -1,0 +1,86 @@
+/* css/base.css */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background: #0d1117;
+}
+
+/* ---------------------------------------------------- */
+/* NEW: Mobile Header Styles (Hidden on Desktop) */
+/* ---------------------------------------------------- */
+.mobile-header {
+    display: flex; 
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px; 
+    background: #161b22;
+    color: #00d4ff;
+    z-index: 1000; 
+    padding: 10px 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    /* These properties are correct for the outer container: */
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* This spreads the menu-toggle and title-area */
+}
+
+/* Menu Toggle Button Style (inside the header) */
+.menu-toggle {
+    background: transparent;
+    color: #00d4ff;
+    width: 40px; 
+    height: 40px;
+    border-radius: 5px;
+    text-align: center;
+    line-height: 40px;
+    cursor: pointer;
+    font-size: 1.2em;
+    z-index: 1001; 
+    
+    /* Ensure the toggle doesn't grow and is fixed in size */
+    flex-shrink: 0; 
+}
+
+.mobile-header .header-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    
+    /* === CRITICAL FIXES START HERE === */
+    /* 1. Remove fixed margin-left so it can be centered */
+    margin: 0 auto; 
+    
+    /* 2. Allow the title to occupy the maximum horizontal space 
+       between the menu-toggle and the right edge, forcing it to the center */
+    flex-grow: 1; 
+    
+    /* 3. Center the text content within the title element */
+    text-align: center; 
+    
+    /* 4. Optional: Add a counter-balance margin to account for the menu-toggle
+       on the left, pushing the title slightly right to be optically centered. 
+       Use the width of the .menu-toggle (40px) */
+    padding-right: 40px; 
+    /* === CRITICAL FIXES END HERE === */
+}
+
+@media (min-width: 769px) {
+    /* Hide the header and toggle button on larger screens */
+    .mobile-header,
+    .menu-toggle {
+        display: none !important; /* Use !important to override the parent selector if necessary */
+    }
+}
+@media (max-width: 768px) {
+    /* Show the header and toggle button on mobile */
+    .mobile-header {
+        display: flex; 
+    }
+}
