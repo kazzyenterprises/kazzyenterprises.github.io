@@ -1,0 +1,20 @@
+/* css/components/button.css - Styles for all interactive buttons and toggles */
+.menu-toggle {
+    display: none;
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    background: #161b22;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 1000;
+    border: 1px solid #2c333a;
+}
+/* Mobile Media Query for the toggle button */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+}

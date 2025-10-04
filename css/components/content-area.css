@@ -1,0 +1,29 @@
+/* css/components/content-area.css - Main Content Layout and Presentation */
+.content {
+    margin-left: 260px; /* Adjusted to 260px to match sidebar width */
+    padding: 20px;
+    flex: 1;
+    background: #0d1117;
+    transition: margin-left 0.3s ease;
+    min-height: 100vh;
+}
+.content h1 {
+    color: #00d4ff;
+    margin-bottom: 10px;
+}
+.content p {
+    color: #ccc;
+    font-size: 15px;
+}
+
+/* Mobile Media Query for Content Layout */
+@media (max-width: 768px) {
+    .content {
+        margin-left: 0; 
+        /* Add top padding equal to header height + desired spacing */
+        padding-top: 80px; 
+        padding-left: 15px; 
+        padding-right: 15px;
+        padding-bottom: 15px;
+    }
+}
