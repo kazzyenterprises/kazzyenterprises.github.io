@@ -22,8 +22,8 @@ const SIDEBAR_HTML_TEMPLATE = `
             <li>
                 <a class="menu-item has-submenu"><span><i class="fa-solid fa-store"></i> Shops</span><i class="fa-solid fa-chevron-right"></i></a>
                 <ul class="submenu">
-                    <li><a href="#shops/directory"><i class="fa-solid fa-address-book"></i> Shop Directory</a></li>
-                    <li><a href="#shops/places"><i class="fa-solid fa-location-dot"></i> Places</a></li>
+                    <li><a href="#shops/shop-directory"><i class="fa-solid fa-address-book"></i> Shop Directory</a></li>
+                    <li><a href="#shops/places-manage"><i class="fa-solid fa-location-dot"></i> Places</a></li>
                     <li><a href="#shops/manage"><i class="fa-solid fa-gear"></i> Manage Shops</a></li>
                     <li><a href="#shops/images"><i class="fa-regular fa-image"></i> Shop Images</a></li>
                 </ul>
@@ -128,5 +128,4 @@ export function initializeSidebarAccordion() {
             });
         });
     }
-
 }
