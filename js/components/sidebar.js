@@ -14,7 +14,7 @@ const SIDEBAR_HTML_TEMPLATE = `
                 <a class="menu-item has-submenu"><span><i class="fa-solid fa-cart-shopping"></i> Orders</span><i class="fa-solid fa-chevron-right"></i></a>
                 <ul class="submenu">
                     <li><a href="#orders/all"><i class="fa-regular fa-list-alt"></i> All Orders</a></li>
-                    <li><a href="#orders/new"><i class="fa-solid fa-plus"></i> New Order</a></li>
+                    <li><a href="#orders/new-order"><i class="fa-solid fa-plus"></i> New Order</a></li>
                     <li><a href="#orders/edit"><i class="fa-solid fa-pen-to-square"></i> Edit Order</a></li>
                 </ul>
             </li>
@@ -128,4 +128,5 @@ export function initializeSidebarAccordion() {
             });
         });
     }
+
 }
