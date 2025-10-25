@@ -1,0 +1,63 @@
+<section class="order-form page-new-order"> 
+    
+    <link rel="stylesheet" href="base.css"> 
+    <link rel="stylesheet" href="shared/utils/css/layout.css"> 
+    <link rel="stylesheet" href="shared/utils/css/components/sidebar.css"> 
+
+    <link rel="stylesheet" href="shared/utils/css/components/button.css"> 
+    <link rel="stylesheet" href="shared/utils/css/components/form-fields.css"> 
+    <link rel="stylesheet" href="shared/utils/css/components/modal.css"> 
+    <link rel="stylesheet" href="shared/utils/css/components/card.css"> 
+
+    <link rel="stylesheet" href="features/orders/css/components/order-table.css">
+
+    <link rel="stylesheet" href="features/orders/css/pages/new-order.css">
+
+    
+    <h1>🛒 Create New Order</h1>
+
+    <span id="order-id-display">Order ID: Generating...</span>
+
+    <label>📅 Order Date <input type="date" id="order-date" readonly></label>
+    <label>⏰ Order Time <input type="time" id="order-time" readonly></label>
+
+    <label>🚚 Select Route
+      <select id="route"></select>
+    </label>
+
+    <label>📍 Select Place
+      <select id="place"></select>
+    </label>
+
+    <label>🏪 Select Shop
+      <select id="shop-name"></select>
+    </label>
+
+    <a href="shop-management.html" target="_blank" class="manage-shop-link">⚙️ Manage Shops & Places</a>
+
+    <div id="shared-order-table-container"></div>
+    <script>
+    fetch('pages/components/order-table.html')
+      .then(res => res.text())
+      .then(html => {
+        document.getElementById('shared-order-table-container').innerHTML = html;
+      });
+    </script>
+
+
+    <label>🚚 Delivery Date
+      <input type="date" id="delivery-date">
+    </label>
+
+    <button id="place-order" class="btn-primary" style="display:none;">✅ Submit Order</button>
+
+    <div class="row-with-button">
+      <button id="item-image-btn" type="button">📷 Upload Product Image</button>
+    </div>
+
+    <h2>➕ Add New Product to Database</h2>
+    <label>📦 Category <input type="text" id="new-category"></label>
+    <label>🛍️ Product Name <input type="text" id="new-product"></label>
+    
+    <button id="add-product" class="btn-primary">➕ Save Product</button> 
+</section>
