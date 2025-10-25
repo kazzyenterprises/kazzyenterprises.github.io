@@ -1,40 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kazzy Enterprises Inventory</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kazzy Enterprises Inventory</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-    
-    <link rel="stylesheet" href="css/base.css"> 
-    <link rel="stylesheet" href="css/components/sidebar.css">
-    <link rel="stylesheet" href="css/components/content-area.css"> 
-    <link rel="stylesheet" href="css/components/button.css">
-    <link rel="stylesheet" href="css/pages/products-manage.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
+  <!-- Styles -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="base.css">
+  <link rel="stylesheet" href="shared/utils/css/components/sidebar.css">
+  <link rel="stylesheet" href="shared/utils/css/components/button.css">
+  <link rel="stylesheet" href="shared/utils/css/components/orders-list-table.css">
+  <link rel="stylesheet" href="features/products/css/pages/products-manage.css">
 </head>
 <body>
 
-    <header class="mobile-header" id="mobile-header">
-        <div class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></div>
-        <div class="header-title">Kazzy Dashboard</div>
-    </header>
+  <header class="mobile-header" id="mobile-header">
+    <div class="menu-toggle" id="menu-toggle"><i class="fas fa-bars"></i></div>
+    <div class="header-title">Kazzy Dashboard</div>
+  </header>
 
-    <nav id="sidebar-placeholder"></nav>
+  <nav id="sidebar-placeholder"></nav>
 
-    <main class="content" id="main-content-area">
-        <p>Initializing Kazzy Enterprises system...</p>
-    </main>
-    
-    <script type="module" src="js/components/sidebar.js"></script>
-    <script type="module" src="js/components/router.js"></script>
-    <script type="module" src="js/pages/new-order.js"></script> 
-    
-    <script type="module" src="js/app.js"></script> 
+  <main class="content" id="main-content-area">
+    <p>Initializing Kazzy Enterprises system...</p>
+  </main>
 
+  <!-- JS Modules -->
+  <script type="module" src="shared/logic/core/sidebar.js"></script>
+  <script type="module" src="shared/logic/core/router.js"></script>
+  <!--<script type="module" src="shared/js/pages/new-order.js"></script>-->
+  <script type="module" src="app.js"></script> 
 </body>
 </html>
