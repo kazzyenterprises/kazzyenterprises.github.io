@@ -1,6 +1,6 @@
 // shared/utils/js/order-item-table.js
 import { loadComponent } from './component-loader.js';
-import { getProductsByCategory } from '../logic/store/data-store.js'; // optional, if you want product dropdowns
+//import { getProductsByCategory } from '../logic/store/data-store.js'; // optional, if you want product dropdowns
 
 export class OrderItemTable {
   constructor(orderItemsBodyId, grandTotalId, addRowBtnId) {
@@ -93,3 +93,4 @@ export async function loadOrderItemTable(containerId) {
   await loadComponent(htmlPath, containerId);
   return new OrderItemTable('order-items-body', 'grand-total', 'add-product-row');
 }
+
