@@ -1,0 +1,26 @@
+/* base.css  root folder*/
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    /* Use a consistent background */
+    background: #0d1117; 
+}
+
+:root {
+    /* Global color variables for consistency */
+    --primary-color: #0078d7;
+    --danger-color: #d9534f;
+    --success-color: #00ffcc;
+    --accent-color: #00d4ff;
+    --warning-color: #ffcc00;
+    --bg-dark: #0d1117;
+    --bg-medium: #161b22;
+    --text-light: #f1f1f1;
+    --border-radius: 12px;
+}
