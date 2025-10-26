@@ -1,0 +1,59 @@
+<link rel="stylesheet" href="css/pages/shop-management.css"> 
+<h1>🏷️ Shop Management</h1>
+<p class="subtitle">Update location and contact details for sales points.</p>
+
+<div class="card attraction-card">
+    
+    <div class="form-group">
+        <label for="route-select">📍 Route/Area</label>
+        <select id="route-select"></select>
+        <p class="help-text">Select the assigned sales route.</p>
+    </div>
+
+    <div class="form-group">
+        <label for="place-input">🗺️ Place/City</label>
+        <input list="places-list" id="place-input" placeholder="Select or add nearby landmark/place" />
+        <datalist id="places-list"></datalist>
+    </div>
+
+    <div class="row">
+        <div class="form-group" style="flex: 2;">
+            <label for="shop-name">🏪 Shop Name</label>
+            <input list="shops-list" id="shop-name" placeholder="Select or add shop's trading name" />
+            <datalist id="shops-list"></datalist>
+        </div>
+        <div style="flex: 1; display:flex; align-items:flex-end;">
+            <button id="shop-image-btn" type="button" class="btn-secondary">
+                🖼️ Upload Shop Image
+            </button>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>📞 Contact No</label>
+        <div class="contact-row">
+            <span class="contact-prefix">+91</span>
+            <input type="text" id="contact-no" maxlength="10" placeholder="Enter 10-digit number">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>📧 Email Address</label>
+        <input type="email" id="email" placeholder="example@email.com (Optional)">
+    </div>
+
+    <div class="form-group">
+        <label>🧭 Location (GPS)</label>
+        <input type="text" id="location" readonly placeholder="Fetching GPS coordinates..." class="read-only-input">
+        <p class="help-text">This field automatically fetches location when the page loads.</p>
+    </div>
+
+    <div class="form-group">
+        <label>🔗 Google Maps Link</label>
+        <input type="url" id="location-link" placeholder="Paste full Google Maps share link">
+    </div>
+
+    <button id="add-shop-btn" type="button" class="btn-primary btn-large">
+        ✨ Save Shop Details
+    </button>
+</div>
