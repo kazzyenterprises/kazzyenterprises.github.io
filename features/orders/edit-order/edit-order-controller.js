@@ -1,6 +1,6 @@
 // features/orders/js/controllers/EditOrderController.js
 
-import { OrderFilterManager } from './_utils/order-filter-manager.js';
+import { OrderFilterManager } from './utils/order-filter-manager.js';
 import { getRoutes, getPlaces, getShops } from '../../../shared/store/data-store.js';
 import { getOrderById } from '../../../shared/api/orders/order-service.js';
 import { updateOrderStandalone, deleteOrderStandalone as deleteOrderService } from '../../../shared/api/orders/edit-order-service.js';
@@ -488,4 +488,5 @@ export class EditOrderController {
     }
   }
 }
+
 
