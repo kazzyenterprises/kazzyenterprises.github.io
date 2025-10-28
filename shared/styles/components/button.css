@@ -1,0 +1,21 @@
+/* shared/css/components/button.css */
+
+.btn-primary, button.full-width-btn { 
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    background: linear-gradient(45deg, var(--accent-color), #007bff);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s, opacity 0.3s;
+    width: 100%;
+}
+
+.btn-primary:hover:enabled, button.full-width-btn:hover:not(:disabled) {
+    background: linear-gradient(45deg, var(--success-color), var(--accent-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 212, 255, 0.4);
+}
+
+/* ... (rest of button styles like btn-delete remain unchanged) ... */

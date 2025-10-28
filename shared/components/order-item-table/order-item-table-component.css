@@ -1,0 +1,104 @@
+/* Shared order table styles (component-level)
+   Use this on any page that contains an order table by applying class="order-table"
+*/
+
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #e0f7fa;
+  font-size: 0.95rem;
+  table-layout: fixed;
+  background: #111;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* cells */
+.order-table th,
+.order-table td {
+  border: 1px solid #334e68;
+  padding: 12px;
+  text-align: center;
+  vertical-align: middle;
+  word-wrap: break-word;
+}
+
+/* header */
+.order-table thead tr {
+  background: #203a43;
+  color: #00ffcc;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+/* input/select inside table */
+.order-table input,
+.order-table select {
+  width: 95%;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: 1px solid #666;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+/* delete buttons */
+.order-table .delete-btn,
+.order-table .delete-line {
+  background: none;
+  border: none;
+  color: #ff4d4d;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.order-table .delete-btn:hover,
+.order-table .delete-line:hover {
+  transform: scale(1.12);
+}
+
+/* footer / total */
+.order-table tfoot td {
+  font-weight: bold;
+  text-align: right;
+  padding: 12px;
+  background: #222;
+  color: #00ff88;
+  font-size: 1.05rem;
+}
+
+.total-display {
+    text-align: right;
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #00ffcc;
+    margin-top: 20px;
+}
+
+/* optional button-row used with the table component */
+.order-table + .button-row,
+.button-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+/* responsive adjustments */
+@media (max-width: 768px) {
+  .order-table th,
+  .order-table td {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+
+  .order-table input,
+  .order-table select {
+    font-size: 0.85rem;
+    padding: 5px;
+  }
+
+  .order-table .delete-btn,
+  .order-table .delete-line { font-size: 1rem; }
+}
