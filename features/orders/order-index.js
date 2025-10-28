@@ -45,7 +45,7 @@ registerRoute("orders/edit-orders", async () => {
 
     try {
         // 2. FIX: Use the ABSOLUTE (root-relative) path for the dynamic import.
-        const { initializeEditOrdersPage } = await import("edit-order.js");
+        const { initializeEditOrdersPage } = await import("./edit-order.js");
         
         initializeEditOrdersPage();
         document.title = 'Edit Order Page';
@@ -77,3 +77,4 @@ export const OrdersFeature = {
     routes: ["orders/new-order", "orders/edit-orders"],
 
 };
+
