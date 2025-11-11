@@ -1,6 +1,6 @@
 // features/orders/js/controllers/NewOrderController.js
 
-import { OrderStateManager } from '../_utils/order-state-manager.js';
+import { OrderStateManager } from '../utils/order-state-manager.js';
 import { EventBus } from '../../../shared/store/event-bus.js';
 import { fetchAllProducts, addProduct } from '../../../shared/api/products/product-service.js';
 import { deleteDraftOrder } from '../../../shared/api/orders/draft-service.js';
@@ -211,3 +211,4 @@ export class NewOrderController {
     await fetchAllProducts(true);
   }
 }
+
