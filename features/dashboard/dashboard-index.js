@@ -13,7 +13,7 @@ registerRoute("dashboard", async () => {
 
   if (loadSuccess) {
     // import page logic (use relative path without leading slash)
-    const { initializeDashboardPage } = await import("/features/dashboard/dashboard-page.js");
+    const { initializeDashboardPage } = await import("./dashboard-page.js");
     if (typeof initializeDashboardPage === 'function') initializeDashboardPage();
     document.title = 'Kazzy Dashboard';
     console.log("[Dashboard] Page and Logic Initialized");
@@ -21,5 +21,6 @@ registerRoute("dashboard", async () => {
     console.error("[Dashboard] Failed to load dashboard HTML");
   }
 });
+
 
 
