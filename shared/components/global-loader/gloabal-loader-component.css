@@ -1,0 +1,57 @@
+/* Ensure this CSS file is included in your main index.html or bundle */
+/*shared/components/global-loader/global-loader.css*/
+
+
+#global-loader-overlay {
+    /* Overlay positioning: Cover the entire viewport */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    
+    /* Ensure it's above everything else */
+    z-index: 9999; 
+    
+    /* Background: Semi-transparent gray */
+    background-color: rgba(0, 0, 0, 0.5); 
+    
+    /* Center the content */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    /* Smooth transition */
+    transition: opacity 0.3s ease;
+}
+
+.loader-hidden {
+    display: none !important; /* Use !important to override 'display: flex' */
+    opacity: 0;
+}
+
+.loader-container {
+    background: white;
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    color: #333;
+    font-family: sans-serif;
+}
+
+/* Simple CSS Spinner (optional but recommended) */
+.spinner {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 10px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
