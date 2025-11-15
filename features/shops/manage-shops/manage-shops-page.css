@@ -1,0 +1,13 @@
+/* features/shops/styles/shop-management-page.css - Page-Specific Overrides */
+
+/* Tweak the card's maximum width for this specific page if desired */
+.attraction-card {
+    max-width: 700px;
+    padding: 25px;
+}
+
+/* Style for read-only GPS input */
+.read-only-input {
+    opacity: 0.75;
+    background: #1c2128;
+}

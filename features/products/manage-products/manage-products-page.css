@@ -1,0 +1,102 @@
+/* ===========================================================
+   MANAGE PRODUCTS PAGE — NORMALIZED TO GLOBAL STRUCTURE
+   Uses global layout.css + card.css + form-fields.css
+=========================================================== */
+
+/* Page Section */
+.manage-products-section {
+    padding: 20px;
+    margin-top: 20px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Page Titles */
+.manage-products-section h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.manage-products-section .subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Product Form Card */
+.manage-products-section .product-management-card {
+    max-width: 100%;
+    margin: 0 auto;
+    animation: fadeUp 0.3s ease;
+}
+
+/* Form Layout (specific tweaks only) */
+.manage-products-section form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Variant field */
+.manage-products-section .variant {
+    display: flex;
+    gap: 10px;
+}
+
+.manage-products-section .variant input {
+    flex: 2;
+}
+
+.manage-products-section .variant select {
+    flex: 1;
+}
+
+/* Status Messages */
+.manage-products-section .status-message {
+    text-align: center;
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.manage-products-section .status-message.success {
+    color: #00e676;
+}
+
+.manage-products-section .status-message.error {
+    color: #ff5252;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===========================================================
+   RESPONSIVE — matches Edit Order & Shop Directory behavior
+=========================================================== */
+@media (max-width: 768px) {
+
+    .manage-products-section {
+        margin-top: 80px;
+        padding: 15px;
+    }
+
+    .manage-products-section .product-management-card {
+        width: 100%;
+        padding: 14px;
+    }
+
+    .manage-products-section h1 {
+        font-size: 1.6rem;
+    }
+}

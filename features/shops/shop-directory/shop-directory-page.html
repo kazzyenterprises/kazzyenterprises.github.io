@@ -1,0 +1,99 @@
+<section class="shop-directory-section">
+
+    <!-- Global + Shared Styles -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="shared/styles/layout.css">
+
+    <link rel="stylesheet" href="shared/styles/components/button.css">
+    <link rel="stylesheet" href="shared/styles/components/form-fields.css">
+    <link rel="stylesheet" href="shared/styles/components/modal.css">
+    <link rel="stylesheet" href="shared/styles/components/card.css">
+
+    <!-- Page-Specific CSS -->
+    <link rel="stylesheet" href="features/shops/shop-directory/shop-directory-page.css">
+
+    <h1>🛍️ Shop Directory Management</h1>
+    <p class="subtitle">Select Route, Place, and Shop to view or update details.</p>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal-overlay" class="modal-overlay" style="display: none;">
+        <div id="confirmation-modal" class="modal">
+            <h3 id="modal-title">Confirm Action</h3>
+            <p id="modal-message">Are you sure?</p>
+            <div class="modal-actions">
+                <button id="modal-cancel-btn" class="btn-secondary">Cancel</button>
+                <button id="modal-confirm-btn" class="btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Shop Entry / Update Card -->
+    <div class="card shop-management-card">
+        <h2>Shop Details</h2>
+
+        <div class="filter-controls">
+
+            <div class="form-group">
+                <label for="route-select">📍 Select Route</label>
+                <select id="route-select">
+                    <option value="">Select Route</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="place-select">🏙️ Select Place</label>
+                <select id="place-select">
+                    <option value="">Select Place</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="shop-select">🏢 Select Shop</label>
+                <select id="shop-select">
+                    <option value="">Select Shop</option>
+                </select>
+            </div>
+
+        </div>
+
+        <hr />
+
+        <div class="details-inputs">
+
+            <div class="form-group">
+                <label for="contact-no">📞 Contact No</label>
+                <input type="text" id="contact-no" maxlength="10">
+            </div>
+
+            <div class="form-group">
+                <label for="email">📧 Email</label>
+                <input type="email" id="email">
+            </div>
+
+            <div class="form-group">
+                <label for="location">🌎 Coordinates (Lat, Long)</label>
+                <input type="text" id="location">
+            </div>
+
+            <div class="form-group">
+                <label for="location-link">🔗 Location Link</label>
+                <input type="url" id="location-link">
+            </div>
+
+        </div>
+
+        <button id="add-shop-btn" class="btn-primary" type="button">
+            💾 Add / Update Shop Details
+        </button>
+    </div>
+
+    <!-- Shop List -->
+    <div class="card shop-list-card">
+        <h2>Shops in <span id="current-place-name">---</span></h2>
+        <p id="shop-list-status" class="status-message">
+            Select a Route and Place to view shops here.
+        </p>
+        <div id="shops-container" class="shops-grid"></div>
+    </div>
+
+</section>

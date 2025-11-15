@@ -1,0 +1,33 @@
+/* Edit-order page specific styles (only overrides and layout) */
+
+
+
+/* Card header */
+.edit-order-card h2 {
+  color: var(--accent-color, #00d4ff);
+}
+
+/* small tweak: darker table background for edit page */
+.edit-order-card .order-table {
+  background: #0f1720; /* subtle difference */
+}
+
+/* delete-style kept local to card if necessary */
+.edit-order-card .delete-btn {
+  color: #ff6b6b;
+}
+
+/* edit page layout for inputs */
+.edit-order-card label {
+  display: block;
+  margin: 8px 0;
+}
+
+/* total row in edit page */
+.total-row {
+  font-size: 1.05rem;
+  color: var(--success-color, #00ff88);
+  text-align: right;
+  margin-top: 12px;
+}
+

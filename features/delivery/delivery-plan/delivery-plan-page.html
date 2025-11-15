@@ -1,0 +1,99 @@
+<section class="delivery-plan-section">
+
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="shared/styles/layout.css">
+    <link rel="stylesheet" href="shared/styles/components/button.css">
+    <link rel="stylesheet" href="shared/styles/components/form-fields.css">
+    <link rel="stylesheet" href="shared/styles/components/card.css">
+    
+    <link rel="stylesheet" href="features/delivery/delivery-plan/delivery-plan-page.css"> 
+
+    <div class="card filter-card"> 
+        <h1>🚚 Delivery Plan</h1>
+        <p class="subtitle">Assign drivers, optimize routes, and track daily delivery schedules.</p>
+
+        <h2>🗓️ Plan & Filter</h2>
+
+        <div class="filter-controls">
+            
+            <div class="form-group">
+                <label for="date-filter">📅 Delivery Date</label>
+                <input type="date" id="date-filter" value="2025-11-16">
+            </div>
+            
+            <div class="form-group">
+                <label for="route-filter">🛣️ Route</label>
+                <select id="route-filter">
+                    <option value="">All Routes</option>
+                    <option value="route-north">Route North (A-1)</option>
+                    <option value="route-south">Route South (B-2)</option>
+                    <option value="route-central">Route Central (C-3)</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="driver-filter">👤 Driver</label>
+                <select id="driver-filter">
+                    <option value="">All Drivers</option>
+                    <option value="driver-a">Alice Smith</option>
+                    <option value="driver-b">Bob Johnson</option>
+                    <option value="driver-c">Charlie Brown</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="btn-row">
+            <button id="btn-load-plan" class="btn-primary">Load Delivery Plan</button>
+            <button id="btn-optimize-route" class="btn-success">✨ Optimize Route</button>
+            <button id="btn-print-manifest" class="btn-secondary">🖨️ Print Manifest</button>
+        </div>
+
+    </div>
+
+    <div class="card route-plan-list-card">
+        <h2>🗺️ Active Route Assignments for 16 Nov 2025</h2>
+        
+        <div class="route-plan-table-container">
+            <table class="route-plan-table">
+                <thead>
+                    <tr> 
+                        <th>Place</th>
+                        <th>Shop Name</th>
+                        <th>Total Value</th>
+                        <th>Location</th>
+                        <th>Action</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="route-plan-data-body">
+
+                    <tr class="route-status-active">
+                        <td>Route North (A-1)</td> 
+                        <td>Quick Stop Mart</td>
+                        <td>$4,500.00</td>
+                        <td><button class="btn-action-view">View Location</button></td>
+                        <td><button class="btn-action-view">View Orders</button></td>
+                        <td>Active</td>
+                    </tr>
+                    <tr class="route-status-completed">
+                        <td>Route South (B-2)</td>
+                        <td>Main Street Grocer</td>
+                        <td>$3,200.00</td>
+                        <td>Bob Johnson (R-B2)</td>
+                        <td><button class="btn-action-view">Review</button></td>
+                        <td>Completed</td>
+                    </tr>
+                    <tr class="route-status-pending">
+                        <td>Route Central (C-3)</td>
+                        <td>Corner Kiosk</td>
+                        <td>$2,100.00</td>
+                        <td>(Unassigned)</td>
+                        <td><button class="btn-action-assign">Assign Route</button></td>
+                        <td>Pending</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>

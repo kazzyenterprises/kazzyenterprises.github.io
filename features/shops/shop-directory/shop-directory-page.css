@@ -1,0 +1,82 @@
+/* ===========================================================
+   SHOP DIRECTORY PAGE — NORMALIZED
+   Only page-specific overrides
+   Uses layout.css, card.css, form-fields.css, button.css
+=========================================================== */
+
+/* Page wrapper */
+.shop-directory-section {
+    animation: fadeIn 0.3s ease-in-out;
+    margin-top: 20px;
+}
+
+/* Page titles */
+.shop-directory-section h1 {
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+.shop-directory-section .subtitle {
+    text-align: center;
+    margin-bottom: 25px;
+    opacity: 0.8;
+}
+
+/* Card-specific overrides */
+.shop-directory-section .card {
+    animation: fadeUp 0.3s ease;
+}
+
+/* Card headers */
+.shop-directory-section .card h2 {
+    color: var(--accent-color);
+}
+
+/* Filter grid */
+.shop-directory-section .filter-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-md, 15px);
+    margin-bottom: 20px;
+}
+
+/* Details grid */
+.shop-directory-section .details-inputs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gap-md, 15px);
+    margin-top: 15px;
+}
+
+/* Shop list grid */
+.shop-directory-section .shops-grid {
+    display: grid;
+    gap: var(--gap-md, 15px);
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    margin-top: 20px;
+}
+
+/* Mini shop card override */
+.shop-directory-section .shop-card {
+    background: var(--card-bg-dark, #0f1720);
+    border: 1px solid var(--border-light, #ffffff20);
+    transition: 0.25s;
+    cursor: pointer;
+}
+
+.shop-directory-section .shop-card:hover {
+    background: var(--card-bg-hover, #17212b);
+}
+
+/* Mobile layout */
+@media (max-width: 768px) {
+
+    .shop-directory-section {
+        margin-top: 80px; /* match edit-order mobile spacing */
+    }
+
+    .shop-directory-section .filter-controls,
+    .shop-directory-section .details-inputs {
+        grid-template-columns: 1fr;
+    }
+}

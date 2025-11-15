@@ -1,0 +1,103 @@
+<section class="inventory-management-section">
+
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="shared/styles/layout.css">
+    <link rel="stylesheet" href="shared/styles/components/button.css">
+    <link rel="stylesheet" href="shared/styles/components/form-fields.css">
+    <link rel="stylesheet" href="shared/styles/components/card.css">
+    
+    <link rel="stylesheet" href="features/products/inventory/inventory-page.css">
+
+    <div class="card filter-card"> 
+        <h1>📦 Inventory Management</h1>
+        <p class="subtitle">View and manage stock levels, locations, and reorder points.</p>
+
+        <h2>🔍 Filter Inventory</h2>
+
+        <div class="filter-controls">
+            
+            <div class="form-group">
+                <label for="location-filter">📍 Warehouse/Location</label>
+                <select id="location-filter">
+                    <option value="">All Locations</option>
+                    <option value="main-a">Main A</option>
+                    <option value="cold-storage">Cold Storage</option>
+                    <option value="overflow">Overflow Zone</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="stock-status-filter">📈 Stock Status</label>
+                <select id="stock-status-filter">
+                    <option value="">All Statuses</option>
+                    <option value="high">High Stock</option>
+                    <option value="medium">Medium Stock</option>
+                    <option value="low">Low Stock</option>
+                    <option value="out">Out of Stock</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="search-inventory">🔍 Search Product</label>
+                <input type="text" id="search-inventory" placeholder="Product name or SKU...">
+            </div>
+        </div>
+        
+        <div class="btn-row">
+            <button id="btn-apply-filters" class="btn-primary">Apply Filters</button>
+            <button id="btn-clear-inventory-filters" class="btn-secondary">Clear Filters</button>
+            <button id="btn-add-stock" class="btn-success">➕ Add New Stock Entry</button>
+        </div>
+
+    </div>
+
+    <div class="card inventory-list-card">
+        <h2>📋 Current Stock Levels</h2>
+        
+        <div class="inventory-table-container">
+            <table class="inventory-table">
+                <thead>
+                    <tr>
+                        <th>SKU</th>
+                        <th>Product Name</th>
+                        <th>Location</th>
+                        <th>Stock Qty</th>
+                        <th>Reorder Point</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-data-body">
+                    <tr class="stock-high">
+                        <td>SKU-001</td>
+                        <td>Kazzy Cola (500ml)</td>
+                        <td>Main A</td>
+                        <td>1250</td>
+                        <td>500</td>
+                        <td>High</td>
+                        <td><button class="btn-mini-edit">Edit</button></td>
+                    </tr>
+                    <tr class="stock-low">
+                        <td>SKU-015</td>
+                        <td>Premium Coffee Beans (1kg)</td>
+                        <td>Overflow Zone</td>
+                        <td>15</td>
+                        <td>50</td>
+                        <td>Low</td>
+                        <td><button class="btn-mini-edit">Edit</button></td>
+                    </tr>
+                    <tr class="stock-out">
+                        <td>SKU-008</td>
+                        <td>Crispy Chips (Large)</td>
+                        <td>Main A</td>
+                        <td>0</td>
+                        <td>200</td>
+                        <td>Out of Stock</td>
+                        <td><button class="btn-mini-edit">Edit</button></td>
+                    </tr>
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+</section>

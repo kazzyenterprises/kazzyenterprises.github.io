@@ -1,0 +1,86 @@
+/* features/products/catalog/product-catalog-page.css */
+
+/*
+* The outer section handles margin/max-width for the entire page container.
+*/
+.product-catalog-section {
+    padding: 20px;
+    margin-top: 0; /* Let the section content spacing handle this */
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* * The new 'catalog-card' wraps the main titles and filters, utilizing shared card styles.
+*/
+.catalog-card h1 {
+    /* Uses styles from shared/styles/components/card.css */
+    text-align: center;
+}
+
+.product-catalog-section .subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #ccc; /* Ensure subtitle is visible */
+}
+
+/* Filter Controls Grid (Kept as is) */
+.product-catalog-section .filter-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Button Row style, borrowed from edit-orders.html structure */
+.btn-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+.btn-row .btn-secondary {
+    /* Assuming a btn-secondary style exists or is defined in button.css */
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    background: #334e68;
+    color: white;
+    border: 1px solid #00d4ff;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    width: 100%;
+}
+.btn-row .btn-secondary:hover {
+    background: #4a6581;
+}
+
+
+/* Product Grid */
+.product-catalog-section .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 15px;
+    margin-top: 10px; /* Reduced margin since it's inside a new card */
+}
+
+/* Each Product Card: Use Card structure but customize look */
+.product-catalog-section .product-card {
+    animation: fadeUp 0.3s ease;
+    padding: 18px;
+    border-radius: 12px;
+    /* Using slightly darker background for product list card for visual separation from filters */
+    background: var(--bg-medium); 
+    border: 1px solid rgba(0,212,255,0.2);
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.product-catalog-section .product-card:hover {
+    /* Slight hover effect on product cards */
+    background: #17212b;
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    transform: translateY(-2px);
+}

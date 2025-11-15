@@ -1,0 +1,121 @@
+/* features/products/inventory/inventory-page.css */
+
+/* Outer container styling */
+.inventory-management-section {
+    padding: 20px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Subtitle alignment, common across pages */
+.inventory-management-section .subtitle {
+    font-size: 1rem;
+    opacity: 0.8;
+    margin-bottom: 25px;
+    text-align: center;
+    color: #ccc;
+}
+
+/* Filter Controls Grid Layout (3 columns) */
+.filter-controls {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+/* Action Button Row */
+.btn-row {
+    display: flex;
+    gap: 15px;
+    margin-top: 10px;
+}
+/* Ensuring the success button has a distinct color */
+#btn-add-stock {
+    background: linear-gradient(45deg, var(--success-color), #00a87f);
+}
+#btn-add-stock:hover:enabled {
+    background: linear-gradient(45deg, #00ff88, var(--success-color));
+    box-shadow: 0 4px 10px rgba(0, 255, 136, 0.4);
+}
+
+/* Inventory Table Styles */
+.inventory-table-container {
+    overflow-x: auto;
+}
+
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.95rem;
+}
+
+.inventory-table th, 
+.inventory-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #21262d; /* Dark border */
+}
+
+.inventory-table thead th {
+    background-color: #17212b; /* Slightly darker header */
+    color: var(--accent-color);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.inventory-table tbody tr:hover {
+    background-color: #161b22; /* Slight hover effect on row */
+}
+
+/* Stock Status Colors */
+.stock-high td:nth-child(6) { /* Targeting the Status column */
+    color: var(--success-color);
+    font-weight: bold;
+}
+.stock-medium td:nth-child(6) {
+    color: var(--primary-color);
+    font-weight: bold;
+}
+.stock-low td:nth-child(6) {
+    color: var(--warning-color);
+    font-weight: bold;
+}
+.stock-out td:nth-child(6) {
+    color: var(--danger-color);
+    font-weight: bold;
+}
+
+/* Mini Edit Button for action column */
+.btn-mini-edit {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+    background: #4a6581;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-mini-edit:hover {
+    background: #00d4ff;
+    transform: translateY(-1px);
+}
+
+/* Media Query for smaller screens */
+@media (max-width: 900px) {
+    .filter-controls {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .btn-row {
+        flex-direction: column;
+    }
+}
+@media (max-width: 500px) {
+    .filter-controls {
+        grid-template-columns: 1fr;
+    }
+}
